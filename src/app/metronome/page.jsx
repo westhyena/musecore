@@ -16,7 +16,7 @@ export default function MetronomePage() {
   const [timeSignature, setTimeSignature] = useState("4/4");
   const [currentBeat, setCurrentBeat] = useState(0);
   const [tapTimes, setTapTimes] = useState([]);
-  const [isAdvanced, setIsAdvanced] = useState(false);
+  const [showCustomize, setShowCustomize] = useState(false);
   const [customNumerator, setCustomNumerator] = useState(4);
   const [customDenominator, setCustomDenominator] = useState(4);
   const intervalRef = useRef(null);
@@ -33,7 +33,7 @@ export default function MetronomePage() {
 
   // Get current time signature info
   const getCurrentTimeSignature = () => {
-    if (isAdvanced) {
+    if (showCustomize) {
       return {
         beats: customNumerator,
         name: `Custom ${customNumerator}/${customDenominator}`,
@@ -96,7 +96,7 @@ export default function MetronomePage() {
 
       return (currentBeatIndex + 1) % beatsPerMeasure;
     });
-  }, [timeSignature, customNumerator, isAdvanced, playClick]);
+  }, [timeSignature, customNumerator, showCustomize, playClick]);
 
   const startMetronome = useCallback(() => {
     if (audioContextRef.current?.state === "suspended") {
@@ -123,7 +123,7 @@ export default function MetronomePage() {
     }, interval);
 
     setIsPlaying(true);
-  }, [bpm, timeSignature, customNumerator, isAdvanced, playClick]);
+  }, [bpm, timeSignature, customNumerator, showCustomize, playClick]);
 
   const stopMetronome = useCallback(() => {
     if (intervalRef.current) {
@@ -179,7 +179,7 @@ export default function MetronomePage() {
     timeSignature,
     customNumerator,
     customDenominator,
-    isAdvanced,
+    showCustomize,
     isPlaying,
     startMetronome,
     stopMetronome,
@@ -254,68 +254,60 @@ export default function MetronomePage() {
 
           {/* Time Signature Controls */}
           <div className="mb-6">
-            {/* Basic/Advanced Toggle */}
-            <div className="flex justify-center mb-4">
-              <div className="bg-white/10 rounded-lg p-1 flex">
+            {/* Preset Time Signatures */}
+            <div className="flex flex-wrap gap-2 justify-center mb-4">
+              {Object.entries(timeSignatures).map(([sig, info]) => (
                 <button
-                  onClick={() => setIsAdvanced(false)}
-                  className={`px-4 py-2 rounded text-sm transition-colors duration-200 ${
-                    !isAdvanced
+                  key={sig}
+                  onClick={() => {
+                    setTimeSignature(sig);
+                    setShowCustomize(false);
+                  }}
+                  className={`px-3 py-1 rounded-lg text-sm transition-colors duration-200 ${
+                    timeSignature === sig && !showCustomize
                       ? "bg-purple-600 text-white"
-                      : "text-purple-300 hover:text-white"
+                      : "bg-white/20 text-purple-300 hover:bg-white/30"
                   }`}
                 >
-                  Basic
+                  {sig}
                 </button>
-                <button
-                  onClick={() => setIsAdvanced(true)}
-                  className={`px-4 py-2 rounded text-sm transition-colors duration-200 flex items-center gap-1 ${
-                    isAdvanced
-                      ? "bg-purple-600 text-white"
-                      : "text-purple-300 hover:text-white"
-                  }`}
-                >
-                  <Settings size={14} />
-                  Advanced
-                </button>
-              </div>
+              ))}
             </div>
 
-            {/* Basic Mode - Preset Buttons */}
-            {!isAdvanced && (
-              <div className="flex flex-wrap gap-2 justify-center mb-4">
-                {Object.entries(timeSignatures).map(([sig, info]) => (
-                  <button
-                    key={sig}
-                    onClick={() => setTimeSignature(sig)}
-                    className={`px-3 py-1 rounded-lg text-sm transition-colors duration-200 ${
-                      timeSignature === sig
-                        ? "bg-purple-600 text-white"
-                        : "bg-white/20 text-purple-300 hover:bg-white/30"
-                    }`}
-                  >
-                    {sig}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Customize Button */}
+            <div className="text-center mb-4">
+              <button
+                onClick={() => setShowCustomize(!showCustomize)}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center gap-2 mx-auto ${
+                  showCustomize
+                    ? "bg-purple-600 text-white"
+                    : "bg-white/20 text-purple-300 hover:bg-white/30"
+                }`}
+              >
+                <Settings size={14} />
+                {showCustomize ? "Hide Custom" : "Customize"}
+              </button>
+            </div>
 
-            {/* Advanced Mode - Custom Input */}
-            {isAdvanced && (
+            {/* Custom Input - Only show when customize is active */}
+            {showCustomize && (
               <div className="mb-4">
                 <div className="flex items-center justify-center gap-3 mb-3">
                   <div className="flex items-center gap-2">
                     <label className="text-sm text-purple-300">Beats:</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="16"
+                    <select
                       value={customNumerator}
                       onChange={(e) =>
-                        setCustomNumerator(parseInt(e.target.value) || 1)
+                        setCustomNumerator(parseInt(e.target.value))
                       }
-                      className="w-16 px-2 py-1 bg-white/20 border border-white/30 rounded text-center text-white focus:outline-none focus:border-purple-400"
-                    />
+                      className="px-2 py-1 bg-white/20 border border-white/30 rounded text-white focus:outline-none focus:border-purple-400"
+                    >
+                      {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => (
+                        <option key={num} value={num}>
+                          {num}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="text-purple-300">/</div>
                   <div className="flex items-center gap-2">
@@ -336,9 +328,6 @@ export default function MetronomePage() {
                 </div>
                 <div className="text-center text-xs text-purple-400">
                   Current: {customNumerator}/{customDenominator}
-                  {customNumerator >= 1 && customNumerator <= 16
-                    ? ""
-                    : " (1-16 beats recommended)"}
                 </div>
               </div>
             )}
