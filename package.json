@@ -60,7 +60,8 @@
 		"vaul": "^1.1.2",
 		"ws": "^8.18.2",
 		"yup": "^1.6.1",
-		"zustand": "^5.0.3"
+		"zustand": "^5.0.3",
+		"pitchy": "^4.0.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.27.1",
