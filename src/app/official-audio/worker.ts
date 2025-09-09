@@ -14,16 +14,17 @@ type GenerateArgs = {
 
 type QualityProfile = {
   fps: number;
-  height: number; // target max height
+  width: number;
+  height: number; // target size (we precompose to this)
   preset: string;
   crf: string;
   audioBitrate: string;
 };
 
 const QUALITY_PRESETS: Record<NonNullable<GenerateArgs['quality']>, QualityProfile> = {
-  fast: { fps: 2, height: 720, preset: 'ultrafast', crf: '26', audioBitrate: '160k' },
-  balanced: { fps: 12, height: 1080, preset: 'veryfast', crf: '23', audioBitrate: '192k' },
-  high: { fps: 24, height: 1080, preset: 'faster', crf: '20', audioBitrate: '224k' },
+  fast: { fps: 1, width: 1280, height: 720, preset: 'ultrafast', crf: '26', audioBitrate: '160k' },
+  balanced: { fps: 8, width: 1920, height: 1080, preset: 'veryfast', crf: '23', audioBitrate: '192k' },
+  high: { fps: 24, width: 1920, height: 1080, preset: 'faster', crf: '20', audioBitrate: '224k' },
 };
 
 // Track per-instance progress handler for concurrent runs
@@ -70,32 +71,33 @@ export async function generateOfficialAudioWith(ffmpeg: FFmpeg, { audioFile, ima
   const profile = QUALITY_PRESETS[quality] ?? QUALITY_PRESETS.fast;
 
   const audioName = `audio${getExtension(audioFile.name) || ".mp3"}`;
-  const imageName = `cover${getExtension(imageFile.name) || ".png"}`;
+  const imageName = `cover.png`;
   const outName = "output.mp4";
 
   // wire progress callback for this run
   if (onProgress) progressMap.set(ffmpeg, onProgress);
 
-  await ffmpeg.writeFile(audioName, await fileToUint8Array(audioFile));
-  await ffmpeg.writeFile(imageName, await fileToUint8Array(imageFile));
+  // Precompose image to target canvas (letterbox) to avoid heavy FFmpeg scaling
+  const composed = await precomposeCover(imageFile, profile.width, profile.height);
+  await ffmpeg.writeFile(imageName, composed);
 
-  const targetHeight = profile.height;
-  const targetWidth = targetHeight === 720 ? 1280 : 1920;
-  const filter = `scale=-2:${targetHeight}:force_original_aspect_ratio=decrease,pad=${targetWidth}:${targetHeight}:(ow-iw)/2:(oh-ih)/2,format=yuv420p`;
+  await ffmpeg.writeFile(audioName, await fileToUint8Array(audioFile));
+
+  const audioCopy = isAacLike(audioFile.name, audioFile.type);
 
   const args = [
     "-y",
     "-loop", "1",
+    "-framerate", String(profile.fps),
     "-i", imageName,
     "-i", audioName,
-    "-vf", filter,
-    "-r", String(profile.fps),
+    // No scaling: already composed to target size; ensure yuv420p for compatibility
+    "-vf", "format=yuv420p",
     "-c:v", "libx264",
     "-preset", profile.preset,
     "-tune", "stillimage",
     "-crf", profile.crf,
-    "-c:a", "aac",
-    "-b:a", profile.audioBitrate,
+    ...(audioCopy ? ["-c:a", "copy"] : ["-c:a", "aac", "-b:a", profile.audioBitrate]),
     "-shortest",
     "-movflags", "+faststart",
     outName,
@@ -134,7 +136,75 @@ function getExtension(name: string): string {
   return name.slice(idx);
 }
 
+function isAacLike(name: string, mime?: string): boolean {
+  const lower = name.toLowerCase();
+  if (mime && /aac|mp4|m4a/.test(mime)) return true;
+  return lower.endsWith('.m4a') || lower.endsWith('.aac') || lower.endsWith('.mp4');
+}
+
 async function fileToUint8Array(file: File): Promise<Uint8Array> {
   const ab = await file.arrayBuffer();
   return new Uint8Array(ab);
+}
+
+async function precomposeCover(file: File, targetW: number, targetH: number): Promise<Uint8Array> {
+  const blobUrl = URL.createObjectURL(file);
+  try {
+    const img = await loadImage(blobUrl);
+    const { canvas, ctx } = createCanvas(targetW, targetH);
+    // fill background (letterbox color)
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, targetW, targetH);
+    // fit image into target with aspect ratio
+    const scale = Math.min(targetW / (img as any).width, targetH / (img as any).height);
+    const drawW = Math.round((img as any).width * scale);
+    const drawH = Math.round((img as any).height * scale);
+    const dx = Math.round((targetW - drawW) / 2);
+    const dy = Math.round((targetH - drawH) / 2);
+    // drawImage for ImageBitmap or HTMLImageElement
+    // @ts-ignore - TS can't infer overloaded drawImage types with union here
+    ctx.drawImage(img as any, dx, dy, drawW, drawH);
+
+    const blob = await canvasToBlob(canvas, 'image/png');
+    const buf = await blob.arrayBuffer();
+    return new Uint8Array(buf);
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
+}
+
+function createCanvas(width: number, height: number): { canvas: HTMLCanvasElement | OffscreenCanvas; ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D } {
+  if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context unavailable');
+    return { canvas, ctx } as any;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D context unavailable');
+  return { canvas, ctx } as any;
+}
+
+function loadImage(url: string): Promise<HTMLImageElement | ImageBitmap> {
+  if (typeof createImageBitmap !== 'undefined') {
+    return fetch(url).then(r => r.blob()).then(b => createImageBitmap(b));
+  }
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function canvasToBlob(canvas: HTMLCanvasElement | OffscreenCanvas, type: string): Promise<Blob> {
+  if (typeof (canvas as any).convertToBlob === 'function') {
+    return (canvas as any).convertToBlob({ type });
+  }
+  return new Promise<Blob>((resolve, reject) => {
+    (canvas as HTMLCanvasElement).toBlob((b) => b ? resolve(b) : reject(new Error('toBlob failed')), type);
+  });
 }
