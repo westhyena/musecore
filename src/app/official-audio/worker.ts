@@ -26,73 +26,59 @@ const QUALITY_PRESETS: Record<NonNullable<GenerateArgs['quality']>, QualityProfi
   high: { fps: 24, height: 1080, preset: 'faster', crf: '20', audioBitrate: '224k' },
 };
 
-let cached: {
-  ffmpeg: FFmpeg | null;
-  loaded: boolean;
+// Track per-instance progress handler for concurrent runs
+const progressMap = new WeakMap<FFmpeg, (p: number) => void>();
+
+let cachedCore: {
+  canUseMt: boolean | null;
   coreURL?: string;
   wasmURL?: string;
-  workerURL?: string;
-} = { ffmpeg: null, loaded: false };
+  classWorkerURL?: string; // ffmpeg class worker
+} = { canUseMt: null };
 
-async function getFFmpeg(): Promise<FFmpeg> {
-  if (cached.ffmpeg && cached.loaded) return cached.ffmpeg;
-
-  const ffmpeg = new FFmpeg();
-
-  // Only log in dev to avoid perf hit
-  // if (import.meta.env.DEV) {
-  //   ffmpeg.on('log', ({ message }) => console.log('[ffmpeg]', message));
-  // }
-
-  // Report progress
-  ffmpeg.on('progress', ({ progress }) => {
-    if (typeof progress === 'number' && progress >= 0 && progress <= 1) {
-      // Will be wired by caller per-exec via onProgress arg
-      // We can't access onProgress here directly, so we store it in a global hook.
-      latestProgress(progress);
-    }
-  });
-
-  // Pin versions to package.json
-  const coreBase = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm";
+async function ensureCoreAssets(): Promise<{ coreURL: string; wasmURL: string; classWorkerURL: string }> {
+  if (cachedCore.coreURL && cachedCore.wasmURL && cachedCore.classWorkerURL && cachedCore.canUseMt !== null) {
+    return { coreURL: cachedCore.coreURL!, wasmURL: cachedCore.wasmURL!, classWorkerURL: cachedCore.classWorkerURL! };
+  }
+  const canUseMt = typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated;
+  cachedCore.canUseMt = canUseMt;
+  const corePkg = canUseMt ? '@ffmpeg/core-mt' : '@ffmpeg/core';
+  const coreVersion = '0.12.10';
+  const coreBase = `https://unpkg.com/${corePkg}@${coreVersion}/dist/esm`;
   const ffmpegBase = "https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/esm";
 
-  if (!cached.coreURL) cached.coreURL = await toBlobURL(`${coreBase}/ffmpeg-core.js`, "text/javascript");
-  if (!cached.wasmURL) cached.wasmURL = await toBlobURL(`${coreBase}/ffmpeg-core.wasm`, "application/wasm");
-  if (!cached.workerURL) cached.workerURL = await toBlobURL(`${ffmpegBase}/worker.js`, "text/javascript");
+  cachedCore.coreURL = await toBlobURL(`${coreBase}/ffmpeg-core.js`, "text/javascript");
+  cachedCore.wasmURL = await toBlobURL(`${coreBase}/ffmpeg-core.wasm`, "application/wasm");
+  cachedCore.classWorkerURL = await toBlobURL(`${ffmpegBase}/worker.js`, "text/javascript");
 
-  await ffmpeg.load({
-    coreURL: cached.coreURL,
-    wasmURL: cached.wasmURL,
-    workerURL: cached.workerURL,
+  return { coreURL: cachedCore.coreURL, wasmURL: cachedCore.wasmURL, classWorkerURL: cachedCore.classWorkerURL };
+}
+
+export async function createFFmpegInstance(): Promise<FFmpeg> {
+  const { coreURL, wasmURL, classWorkerURL } = await ensureCoreAssets();
+  const ffmpeg = new FFmpeg();
+  ffmpeg.on('progress', ({ progress }) => {
+    const cb = progressMap.get(ffmpeg);
+    if (typeof progress === 'number' && progress >= 0 && progress <= 1 && cb) cb(progress);
   });
-
-  cached.ffmpeg = ffmpeg;
-  cached.loaded = true;
+  await ffmpeg.load({ coreURL, wasmURL, workerURL: classWorkerURL });
   return ffmpeg;
 }
 
-let latestProgress: (p: number) => void = () => {};
-
-export async function generateOfficialAudio({ audioFile, imageFile, title, artist, quality = 'fast', onProgress }: GenerateArgs): Promise<string> {
+export async function generateOfficialAudioWith(ffmpeg: FFmpeg, { audioFile, imageFile, quality = 'fast', onProgress }: GenerateArgs): Promise<string> {
   if (!audioFile || !imageFile) throw new Error("오디오와 이미지를 모두 선택하세요.");
-
   const profile = QUALITY_PRESETS[quality] ?? QUALITY_PRESETS.fast;
-  const ffmpeg = await getFFmpeg();
-
-  // Wire progress callback for current run
-  latestProgress = (p: number) => {
-    try { onProgress?.(p); } catch {}
-  };
 
   const audioName = `audio${getExtension(audioFile.name) || ".mp3"}`;
   const imageName = `cover${getExtension(imageFile.name) || ".png"}`;
   const outName = "output.mp4";
 
+  // wire progress callback for this run
+  if (onProgress) progressMap.set(ffmpeg, onProgress);
+
   await ffmpeg.writeFile(audioName, await fileToUint8Array(audioFile));
   await ffmpeg.writeFile(imageName, await fileToUint8Array(imageFile));
 
-  // Scale to target height, keep aspect, then pad to 1920xH (or 1280x720 for fast)
   const targetHeight = profile.height;
   const targetWidth = targetHeight === 720 ? 1280 : 1920;
   const filter = `scale=-2:${targetHeight}:force_original_aspect_ratio=decrease,pad=${targetWidth}:${targetHeight}:(ow-iw)/2:(oh-ih)/2,format=yuv420p`;
@@ -124,16 +110,21 @@ export async function generateOfficialAudio({ audioFile, imageFile, title, artis
   const blob = new Blob([data], { type: "video/mp4" });
   const url = URL.createObjectURL(blob);
 
-  // Cleanup virtual FS (optional)
   try {
     await ffmpeg.deleteFile(audioName);
     await ffmpeg.deleteFile(imageName);
     await ffmpeg.deleteFile(outName);
   } catch {}
 
-  // Reset progress hook
-  latestProgress = () => {};
+  // clear handler after run
+  if (onProgress) progressMap.delete(ffmpeg);
 
+  return url;
+}
+
+export async function generateOfficialAudio({ audioFile, imageFile, title, artist, quality = 'fast', onProgress }: GenerateArgs): Promise<string> {
+  const ffmpeg = await createFFmpegInstance();
+  const url = await generateOfficialAudioWith(ffmpeg, { audioFile, imageFile, quality, onProgress });
   return url;
 }
 

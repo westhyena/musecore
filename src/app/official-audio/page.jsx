@@ -1,28 +1,100 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Music, Image as ImageIcon, Upload, Wand2, Play, Video, RotateCw, Download } from "lucide-react";
+import { Music, Image as ImageIcon, Wand2, Video, Download, X } from "lucide-react";
 
 export default function OfficialAudioPage() {
-  const [audioFile, setAudioFile] = useState(null);
+  const [audioFiles, setAudioFiles] = useState([]);
   const [imageFile, setImageFile] = useState(null);
-  const [title, setTitle] = useState("");
-  const [artist, setArtist] = useState("");
   const [quality, setQuality] = useState("fast");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [videoUrl, setVideoUrl] = useState("");
-  const [error, setError] = useState("");
+  const [jobs, setJobs] = useState([]); // { id, file, progress, status: 'pending'|'running'|'done'|'error', url? }
+  const cancelRef = useRef(false);
 
-  const audioUrl = useMemo(() => (audioFile ? URL.createObjectURL(audioFile) : ""), [audioFile]);
   const imageUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile]);
 
   useEffect(() => {
     return () => {
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
       if (imageUrl) URL.revokeObjectURL(imageUrl);
     };
-  }, [audioUrl, imageUrl]);
+  }, [imageUrl]);
 
-  const disabled = !audioFile || !imageFile || isGenerating;
+  const disabled = !imageFile || !audioFiles.length || isGenerating;
+
+  const onSelectAudios = (filesList) => {
+    const files = Array.from(filesList || []);
+    setAudioFiles(files);
+    setJobs(
+      files.map((f, idx) => ({
+        id: `${f.name}-${f.lastModified}-${idx}`,
+        file: f,
+        progress: 0,
+        status: "pending",
+        url: "",
+      }))
+    );
+  };
+
+  const formatPct = (p) => `${Math.round((p || 0) * 100)}%`;
+  const baseName = (name) => {
+    const idx = name.lastIndexOf('.');
+    return idx === -1 ? name : name.slice(0, idx);
+  };
+
+  const startBatch = async () => {
+    if (disabled) return;
+    cancelRef.current = false;
+    setIsGenerating(true);
+
+    const maxConcurrency = Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 4) - 2));
+
+    try {
+      const { createFFmpegInstance, generateOfficialAudioWith } = await import("./worker");
+
+      // Create a pool of ffmpeg instances
+      const poolSize = Math.min(maxConcurrency, audioFiles.length);
+      const pool = await Promise.all(
+        new Array(poolSize).fill(0).map(() => createFFmpegInstance())
+      );
+
+      let nextIndex = 0;
+      const runNext = async (workerIdx) => {
+        if (cancelRef.current) return;
+        const current = nextIndex++;
+        if (current >= jobs.length) return;
+        const job = jobs[current];
+
+        setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, status: 'running', progress: 0 } : j)));
+        try {
+          const url = await generateOfficialAudioWith(pool[workerIdx], {
+            audioFile: job.file,
+            imageFile,
+            quality,
+            onProgress: (p) => {
+              setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, progress: p } : j)));
+            },
+          });
+          const filename = `${baseName(job.file.name)}.mp4`;
+          setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, status: 'done', url } : j)));
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          a.click();
+        } catch (err) {
+          console.error(err);
+          setJobs((prev) => prev.map((j) => (j.id === job.id ? { ...j, status: 'error' } : j)));
+        } finally {
+          await runNext(workerIdx);
+        }
+      };
+
+      await Promise.all(new Array(poolSize).fill(0).map((_, idx) => runNext(idx)));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const cancelBatch = () => {
+    cancelRef.current = true;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -38,29 +110,27 @@ export default function OfficialAudioPage() {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="text-center mb-10">
           <h2 className="text-4xl font-light mb-3 text-purple-100">Official Audio</h2>
-          <p className="text-purple-300">오디오 파일과 앨범 아트를 합쳐 YouTube용 영상으로 변환합니다.</p>
+          <p className="text-purple-300">앨범 아트 1장 + 다수의 오디오를 한 번에 MP4로 변환합니다.</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 items-start">
           <div className="md:col-span-2 bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm text-purple-200 mb-2">오디오 파일</label>
+                <label className="block text-sm text-purple-200 mb-2">오디오 파일들 (여러개 선택)</label>
                 <label className="flex flex-col items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/5 p-6 cursor-pointer hover:bg-white/10 transition-colors">
                   <Music className="text-purple-300" />
-                  <span className="text-sm text-purple-300">MP3, WAV 등</span>
+                  <span className="text-sm text-purple-300">MP3, WAV 등 (다중 선택 가능)</span>
                   <input
                     type="file"
+                    multiple
                     accept="audio/*"
                     className="hidden"
-                    onChange={(e) => setAudioFile(e.target.files?.[0] ?? null)}
+                    onChange={(e) => onSelectAudios(e.target.files)}
                   />
                 </label>
-                {audioFile && (
-                  <div className="mt-3 text-sm text-purple-200 truncate">{audioFile.name}</div>
-                )}
-                {audioUrl && (
-                  <audio src={audioUrl} controls className="mt-4 w-full" />
+                {!!audioFiles.length && (
+                  <div className="mt-3 text-sm text-purple-200">{audioFiles.length}개의 파일 선택됨</div>
                 )}
               </div>
 
@@ -68,7 +138,7 @@ export default function OfficialAudioPage() {
                 <label className="block text-sm text-purple-200 mb-2">앨범 아트(이미지)</label>
                 <label className="flex flex-col items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/5 p-6 cursor-pointer hover:bg-white/10 transition-colors">
                   <ImageIcon className="text-purple-300" />
-                  <span className="text-sm text-purple-300">PNG, JPG</span>
+                  <span className="text-sm text-purple-300">PNG, JPG (1개)</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -98,121 +168,72 @@ export default function OfficialAudioPage() {
                   <option value="high">고화질 (24fps, 1080p)</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm text-purple-200 mb-2">제목</label>
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="곡 제목"
-                  className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-purple-200 mb-2">아티스트</label>
-                <input
-                  value={artist}
-                  onChange={(e) => setArtist(e.target.value)}
-                  placeholder="아티스트명"
-                  className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                />
-              </div>
             </div>
-
-            {isGenerating && (
-              <div className="mt-6">
-                <div className="w-full h-2 bg-white/10 rounded overflow-hidden">
-                  <div
-                    className="h-full bg-purple-500 transition-all"
-                    style={{ width: `${Math.round(progress * 100)}%` }}
-                  />
-                </div>
-                <div className="mt-2 text-xs text-purple-300">{Math.round(progress * 100)}%</div>
-              </div>
-            )}
 
             <div className="mt-6 flex gap-3">
               <button
                 disabled={disabled}
-                onClick={() => {
-                  const event = new CustomEvent("official-audio:generate", {
-                    detail: { audioFile, imageFile, title, artist, quality },
-                  });
-                  window.dispatchEvent(event);
-                }}
+                onClick={startBatch}
                 className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-white/20 transition-colors ${disabled ? "bg-white/10 text-purple-300" : "bg-purple-500 hover:bg-purple-400 text-white"}`}
               >
                 <Wand2 size={18} />
-                생성하기
+                모두 생성 (병렬)
               </button>
 
               <button
-                disabled={!videoUrl}
-                onClick={() => {
-                  if (!videoUrl) return;
-                  const a = document.createElement("a");
-                  a.href = videoUrl;
-                  a.download = `${title || "official-audio"}.mp4`;
-                  a.click();
-                }}
-                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-white/20 transition-colors ${!videoUrl ? "bg-white/10 text-purple-300" : "bg-emerald-500 hover:bg-emerald-400 text-white"}`}
+                disabled={!isGenerating}
+                onClick={() => { cancelRef.current = true; }}
+                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-white/20 transition-colors ${!isGenerating ? "bg-white/10 text-purple-300" : "bg-white/10 hover:bg-white/20 text-white"}`}
               >
-                <Download size={18} />
-                MP4 다운로드
+                <X size={18} />
+                취소
               </button>
-
-              {videoUrl && (
-                <a
-                  href={videoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white transition-colors"
-                >
-                  <Video size={18} /> 미리보기
-                </a>
-              )}
             </div>
 
-            {!!error && (
-              <div className="mt-4 text-sm text-red-300">{error}</div>
+            {/* Jobs */}
+            {!!jobs.length && (
+              <div className="mt-8 space-y-3">
+                {jobs.map((j) => (
+                  <div key={j.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="truncate">{j.file.name}</div>
+                      <div className="text-purple-300">
+                        {j.status === 'pending' && '대기 중'}
+                        {j.status === 'running' && `${formatPct(j.progress)} 인코딩 중`}
+                        {j.status === 'done' && '완료'}
+                        {j.status === 'error' && '오류'}
+                      </div>
+                    </div>
+                    <div className="mt-2 w-full h-2 bg-white/10 rounded overflow-hidden">
+                      <div className={`h-full ${j.status === 'error' ? 'bg-red-400' : 'bg-purple-500'}`} style={{ width: j.status === 'done' ? '100%' : `${Math.round((j.progress || 0) * 100)}%` }} />
+                    </div>
+                    {j.url && (
+                      <div className="mt-2 text-xs">
+                        <a href={j.url} target="_blank" rel="noreferrer" className="text-purple-300 hover:text-purple-200 inline-flex items-center gap-1">
+                          <Video size={14} /> 미리보기
+                        </a>
+                        <span className="mx-2 text-purple-400">·</span>
+                        <a href={j.url} download={`${baseName(j.file.name)}.mp4`} className="text-purple-300 hover:text-purple-200 inline-flex items-center gap-1">
+                          <Download size={14} /> 다운로드
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
             <h3 className="text-lg text-purple-100 mb-4">가이드</h3>
             <ul className="space-y-2 text-sm text-purple-200 list-disc list-inside">
-              <li>이미지는 정사각형(1:1) 권장, 최소 1000×1000px</li>
-              <li>오디오는 압축형(MP3) 또는 무손실(WAV) 모두 가능</li>
-              <li>생성 시간은 브라우저 성능/오디오 길이에 따라 달라집니다</li>
+              <li>병렬 실행 개수는 디바이스 성능에 따라 자동 조절됩니다</li>
+              <li>메모리 부족 시 브라우저가 탭을 강제 종료할 수 있습니다</li>
+              <li>MP4 파일명은 오디오 파일명으로 자동 저장됩니다</li>
             </ul>
-            <div className="mt-6 text-xs text-purple-300">
-              브라우저에서 로컬로 처리되며, 파일이 서버로 전송되지 않습니다.
-            </div>
           </div>
         </div>
-
-        <VideoGeneratorBridge onStart={() => setIsGenerating(true)} onProgress={(p)=> setProgress(p)} onFinish={(url) => { setVideoUrl(url); setIsGenerating(false); setProgress(1); }} onError={(msg) => { setError(msg); setIsGenerating(false); }} />
       </div>
     </div>
   );
-}
-
-function VideoGeneratorBridge({ onStart, onFinish, onError, onProgress }) {
-  useEffect(() => {
-    async function handler(e) {
-      const { audioFile, imageFile, title, artist, quality } = e.detail || {};
-      try {
-        onStart?.();
-        const { generateOfficialAudio } = await import("./worker");
-        const url = await generateOfficialAudio({ audioFile, imageFile, title, artist, quality, onProgress });
-        onFinish?.(url);
-      } catch (err) {
-        console.error(err);
-        onError?.(err?.message || "영상 생성 중 오류가 발생했습니다.");
-      }
-    }
-    window.addEventListener("official-audio:generate", handler);
-    return () => window.removeEventListener("official-audio:generate", handler);
-  }, [onStart, onFinish, onError, onProgress]);
-
-  return null;
 }
