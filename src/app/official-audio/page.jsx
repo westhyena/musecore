@@ -8,6 +8,7 @@ export default function OfficialAudioPage() {
   const [artist, setArtist] = useState("");
   const [quality, setQuality] = useState("fast");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState("");
   const [error, setError] = useState("");
 
@@ -117,6 +118,18 @@ export default function OfficialAudioPage() {
               </div>
             </div>
 
+            {isGenerating && (
+              <div className="mt-6">
+                <div className="w-full h-2 bg-white/10 rounded overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 transition-all"
+                    style={{ width: `${Math.round(progress * 100)}%` }}
+                  />
+                </div>
+                <div className="mt-2 text-xs text-purple-300">{Math.round(progress * 100)}%</div>
+              </div>
+            )}
+
             <div className="mt-6 flex gap-3">
               <button
                 disabled={disabled}
@@ -177,20 +190,20 @@ export default function OfficialAudioPage() {
           </div>
         </div>
 
-        <VideoGeneratorBridge onStart={() => setIsGenerating(true)} onFinish={(url) => { setVideoUrl(url); setIsGenerating(false); }} onError={(msg) => { setError(msg); setIsGenerating(false); }} />
+        <VideoGeneratorBridge onStart={() => setIsGenerating(true)} onProgress={(p)=> setProgress(p)} onFinish={(url) => { setVideoUrl(url); setIsGenerating(false); setProgress(1); }} onError={(msg) => { setError(msg); setIsGenerating(false); }} />
       </div>
     </div>
   );
 }
 
-function VideoGeneratorBridge({ onStart, onFinish, onError }) {
+function VideoGeneratorBridge({ onStart, onFinish, onError, onProgress }) {
   useEffect(() => {
     async function handler(e) {
       const { audioFile, imageFile, title, artist, quality } = e.detail || {};
       try {
         onStart?.();
         const { generateOfficialAudio } = await import("./worker");
-        const url = await generateOfficialAudio({ audioFile, imageFile, title, artist, quality });
+        const url = await generateOfficialAudio({ audioFile, imageFile, title, artist, quality, onProgress });
         onFinish?.(url);
       } catch (err) {
         console.error(err);
@@ -199,7 +212,7 @@ function VideoGeneratorBridge({ onStart, onFinish, onError }) {
     }
     window.addEventListener("official-audio:generate", handler);
     return () => window.removeEventListener("official-audio:generate", handler);
-  }, [onStart, onFinish, onError]);
+  }, [onStart, onFinish, onError, onProgress]);
 
   return null;
 }

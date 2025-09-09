@@ -9,6 +9,7 @@ type GenerateArgs = {
   title?: string;
   artist?: string;
   quality?: 'fast' | 'balanced' | 'high';
+  onProgress?: (p: number) => void;
 };
 
 type QualityProfile = {
@@ -43,6 +44,15 @@ async function getFFmpeg(): Promise<FFmpeg> {
   //   ffmpeg.on('log', ({ message }) => console.log('[ffmpeg]', message));
   // }
 
+  // Report progress
+  ffmpeg.on('progress', ({ progress }) => {
+    if (typeof progress === 'number' && progress >= 0 && progress <= 1) {
+      // Will be wired by caller per-exec via onProgress arg
+      // We can't access onProgress here directly, so we store it in a global hook.
+      latestProgress(progress);
+    }
+  });
+
   // Pin versions to package.json
   const coreBase = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm";
   const ffmpegBase = "https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/esm";
@@ -62,11 +72,18 @@ async function getFFmpeg(): Promise<FFmpeg> {
   return ffmpeg;
 }
 
-export async function generateOfficialAudio({ audioFile, imageFile, title, artist, quality = 'fast' }: GenerateArgs): Promise<string> {
+let latestProgress: (p: number) => void = () => {};
+
+export async function generateOfficialAudio({ audioFile, imageFile, title, artist, quality = 'fast', onProgress }: GenerateArgs): Promise<string> {
   if (!audioFile || !imageFile) throw new Error("오디오와 이미지를 모두 선택하세요.");
 
   const profile = QUALITY_PRESETS[quality] ?? QUALITY_PRESETS.fast;
   const ffmpeg = await getFFmpeg();
+
+  // Wire progress callback for current run
+  latestProgress = (p: number) => {
+    try { onProgress?.(p); } catch {}
+  };
 
   const audioName = `audio${getExtension(audioFile.name) || ".mp3"}`;
   const imageName = `cover${getExtension(imageFile.name) || ".png"}`;
@@ -113,6 +130,9 @@ export async function generateOfficialAudio({ audioFile, imageFile, title, artis
     await ffmpeg.deleteFile(imageName);
     await ffmpeg.deleteFile(outName);
   } catch {}
+
+  // Reset progress hook
+  latestProgress = () => {};
 
   return url;
 }
