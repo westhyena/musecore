@@ -19,7 +19,7 @@ export default defineConfig({
     // Explicitly include fast-glob, since it gets dynamically imported and we
     // don't want that to cause a re-bundle.
     include: ['fast-glob', 'lucide-react'],
-    exclude: ['fsevents', 'lightningcss'],
+    exclude: ['fsevents', 'lightningcss', '@ffmpeg/core', '@ffmpeg/ffmpeg', '@ffmpeg/util'],
     esbuildOptions: {
       // Allow TLA during dependency pre-bundling
       target: 'es2022',

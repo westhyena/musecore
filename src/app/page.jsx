@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, Volume2, Mic, MicOff, Music } from "lucide-react";
+import { Play, Pause, Volume2, Mic, MicOff, Music, Video } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -73,6 +73,40 @@ export default function HomePage() {
               </div>
             </div>
           </a>
+        </div>
+
+        {/* Row 2 */}
+        <div className="grid md:grid-cols-2 gap-8 mt-8">
+          {/* Official Audio Card */}
+          <a href="/official-audio" className="group">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+              <div className="text-center">
+                <div className="mb-6">
+                  <Video
+                    size={64}
+                    className="mx-auto text-purple-400 group-hover:text-purple-300 transition-colors"
+                  />
+                </div>
+                <h2 className="text-3xl font-light mb-4 text-white">
+                  Official Audio
+                </h2>
+                <p className="text-purple-300 mb-6">
+                  Combine your album art and audio into a YouTube-ready MP4
+                </p>
+                <div className="flex justify-center gap-4 text-sm text-purple-400">
+                  <span>• Image + Audio → MP4</span>
+                  <span>• H.264 + AAC</span>
+                  <span>• 1080p</span>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <div className="text-purple-300">
+              더 많은 툴이 곧 추가됩니다.
+            </div>
+          </div>
         </div>
 
         <div className="text-center mt-12">

@@ -16,6 +16,9 @@
 		"@dnd-kit/sortable": "^10.0.0",
 		"@emotion/react": "11.11.4",
 		"@emotion/styled": "11.11.0",
+		"@ffmpeg/core": "0.12.10",
+		"@ffmpeg/ffmpeg": "0.12.15",
+		"@ffmpeg/util": "0.12.2",
 		"@lshay/ui": "^0.1.32",
 		"@neondatabase/serverless": "^0.10.4",
 		"@react-aria/button": "^3.13.1",
@@ -39,6 +42,7 @@
 		"motion": "^12.7.4",
 		"papaparse": "^5.5.2",
 		"pdfjs-dist": "3.11.174",
+		"pitchy": "^4.0.3",
 		"react": "^18.2.0",
 		"react-colorful": "^5.6.1",
 		"react-day-picker": "^9.6.7",
@@ -60,8 +64,7 @@
 		"vaul": "^1.1.2",
 		"ws": "^8.18.2",
 		"yup": "^1.6.1",
-		"zustand": "^5.0.3",
-		"pitchy": "^4.0.3"
+		"zustand": "^5.0.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.27.1",
