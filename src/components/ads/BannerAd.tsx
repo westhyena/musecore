@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type BannerAdProps = {
   slotId?: string;
   className?: string;
   /** semantic position hint for styling hooks if needed */
   position?: 'top' | 'bottom' | 'inline';
+  /** hide container when no ad height is rendered */
+  hideIfEmpty?: boolean;
 };
 
 /**
@@ -12,7 +14,7 @@ type BannerAdProps = {
  * - Requires NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT and NEXT_PUBLIC_ADSENSE_SLOT_BANNER
  * - In dev mode, sets data-adtest="on" to avoid policy issues
  */
-export default function BannerAd({ slotId, className, position = 'inline' }: BannerAdProps) {
+export default function BannerAd({ slotId, className, position = 'inline', hideIfEmpty = true }: BannerAdProps) {
   const clientId = import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT as string | undefined;
   const fallbackSlot = import.meta.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER as string | undefined;
   const resolvedSlotId = slotId ?? fallbackSlot;
@@ -21,6 +23,7 @@ export default function BannerAd({ slotId, className, position = 'inline' }: Ban
   const containerRef = useRef<HTMLDivElement | null>(null);
   const insRef = useRef<HTMLDivElement | null>(null);
   const initialized = useRef(false);
+  const [hasHeight, setHasHeight] = useState(false);
 
   const shouldRender = useMemo(() => {
     return Boolean(clientId && resolvedSlotId);
@@ -39,7 +42,32 @@ export default function BannerAd({ slotId, className, position = 'inline' }: Ban
     }
   }, [shouldRender]);
 
+  // Detect actual rendered height, hide when empty (no-fill / adblock)
+  useEffect(() => {
+    if (!shouldRender) return;
+    const target = containerRef.current as HTMLElement | null;
+    if (!target || typeof ResizeObserver === 'undefined') return;
+
+    const update = () => {
+      const height = target.offsetHeight || (insRef.current as unknown as HTMLElement | null)?.offsetHeight || 0;
+      setHasHeight(height > 8); // consider tiny heights as empty
+    };
+
+    // Initial check + timeout fallback (some ads take longer)
+    update();
+    const timeout = window.setTimeout(update, 2500);
+
+    const ro = new ResizeObserver(update);
+    ro.observe(target);
+    return () => {
+      window.clearTimeout(timeout);
+      ro.disconnect();
+    };
+  }, [shouldRender]);
+
   if (!shouldRender) return null;
+
+  const hiddenClass = hideIfEmpty && !hasHeight ? 'hidden' : '';
 
   return (
     <div
@@ -48,6 +76,7 @@ export default function BannerAd({ slotId, className, position = 'inline' }: Ban
         [
           'w-full flex justify-center',
           position === 'bottom' ? 'mt-6 mb-2' : position === 'top' ? 'mb-6 mt-2' : 'my-4',
+          hiddenClass,
           className ?? '',
         ].join(' ').trim()
       }
@@ -56,7 +85,6 @@ export default function BannerAd({ slotId, className, position = 'inline' }: Ban
     >
       {/* Responsive ad unit */}
       <ins
-        // @ts-expect-error Using class for AdSense hook
         className="adsbygoogle"
         style={{ display: 'block', width: '100%', minHeight: 60 }}
         data-ad-client={clientId}
