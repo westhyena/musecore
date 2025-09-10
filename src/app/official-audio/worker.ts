@@ -1,7 +1,7 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
 
-// We load core/wasm/worker via CDN to avoid bundler deep-import/export issues.
+// We load core/wasm/worker from same-origin /ffmpeg to avoid CORS.
 
 type GenerateArgs = {
   audioFile: File;
@@ -27,43 +27,78 @@ const QUALITY_PRESETS: Record<NonNullable<GenerateArgs['quality']>, QualityProfi
   high: { fps: 24, width: 1920, height: 1080, preset: 'faster', crf: '20', audioBitrate: '224k' },
 };
 
-// Track per-instance progress handler for concurrent runs
+// Track per-instance progress handler and duration for concurrent runs
 const progressMap = new WeakMap<FFmpeg, (p: number) => void>();
+const durationMap = new WeakMap<FFmpeg, number>();
 
-let cachedCore: {
-  canUseMt: boolean | null;
-  coreURL?: string;
-  wasmURL?: string;
-  classWorkerURL?: string; // ffmpeg class worker
-} = { canUseMt: null };
-
-async function ensureCoreAssets(): Promise<{ coreURL: string; wasmURL: string; classWorkerURL: string }> {
-  if (cachedCore.coreURL && cachedCore.wasmURL && cachedCore.classWorkerURL && cachedCore.canUseMt !== null) {
-    return { coreURL: cachedCore.coreURL!, wasmURL: cachedCore.wasmURL!, classWorkerURL: cachedCore.classWorkerURL! };
+function sameOriginConfig(mt: boolean) {
+  const base = '/ffmpeg';
+  if (mt) {
+    return {
+      coreURL: `${base}/core-mt/ffmpeg-core.js`,
+      wasmURL: `${base}/core-mt/ffmpeg-core.wasm`,
+      classWorkerURL: `${base}/worker.js`,
+      workerURL: `${base}/core-mt/ffmpeg-core.worker.js`,
+    } as const;
   }
-  const canUseMt = typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated;
-  cachedCore.canUseMt = canUseMt;
-  const corePkg = canUseMt ? '@ffmpeg/core-mt' : '@ffmpeg/core';
-  const coreVersion = '0.12.10';
-  const coreBase = `https://unpkg.com/${corePkg}@${coreVersion}/dist/esm`;
-  const ffmpegBase = "https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/esm";
-
-  cachedCore.coreURL = await toBlobURL(`${coreBase}/ffmpeg-core.js`, "text/javascript");
-  cachedCore.wasmURL = await toBlobURL(`${coreBase}/ffmpeg-core.wasm`, "application/wasm");
-  cachedCore.classWorkerURL = await toBlobURL(`${ffmpegBase}/worker.js`, "text/javascript");
-
-  return { coreURL: cachedCore.coreURL, wasmURL: cachedCore.wasmURL, classWorkerURL: cachedCore.classWorkerURL };
+  return {
+    coreURL: `${base}/core/ffmpeg-core.js`,
+    wasmURL: `${base}/core/ffmpeg-core.wasm`,
+    classWorkerURL: `${base}/worker.js`,
+  } as const;
 }
 
-export async function createFFmpegInstance(): Promise<FFmpeg> {
-  const { coreURL, wasmURL, classWorkerURL } = await ensureCoreAssets();
+async function loadWithTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`timeout:${label}`)), ms);
+    p.then((v) => { clearTimeout(timer); resolve(v); }).catch((e) => { clearTimeout(timer); reject(e); });
+  });
+}
+
+async function tryCreateFFmpeg(mt: boolean): Promise<FFmpeg> {
+  const cfg = sameOriginConfig(mt);
   const ffmpeg = new FFmpeg();
   ffmpeg.on('progress', ({ progress }) => {
     const cb = progressMap.get(ffmpeg);
-    if (typeof progress === 'number' && progress >= 0 && progress <= 1 && cb) cb(progress);
+    if (typeof progress === 'number' && progress > 0 && progress <= 1 && cb) cb(progress);
   });
-  await ffmpeg.load({ coreURL, wasmURL, workerURL: classWorkerURL });
+  ffmpeg.on('log', ({ message }) => {
+    const cb = progressMap.get(ffmpeg);
+    if (!cb) return;
+    const dur = durationMap.get(ffmpeg);
+    if (!dur || dur <= 0) return;
+    if (message && message.includes('time=')) {
+      const m = message.match(/time=(\d{2}):(\d{2}):(\d{2}\.\d+)/);
+      if (m) {
+        const h = Number(m[1]);
+        const mi = Number(m[2]);
+        const s = Number(m[3]);
+        const sec = h * 3600 + mi * 60 + s;
+        const p = Math.max(0, Math.min(0.99, sec / dur));
+        cb(p);
+      }
+    }
+  });
+  // @ts-ignore - workerURL used for MT, classWorkerURL used for class worker
+  await loadWithTimeout(ffmpeg.load(cfg as any), mt ? 2500 : 8000, mt ? 'core-mt' : 'core');
   return ffmpeg;
+}
+
+export async function createFFmpegInstance(): Promise<FFmpeg> {
+  // In prod/preview, default to single-thread to avoid intermittent pending; allow opt-in via env
+  const allowMtFlag = (import.meta as any).env?.NEXT_PUBLIC_FFMPEG_MT;
+  const allowMt = allowMtFlag ? String(allowMtFlag).toLowerCase() !== 'false' : (import.meta as any).env?.DEV;
+  const canUseMt = typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated && allowMt;
+  const candidates: boolean[] = canUseMt ? [true, false] : [false];
+  let lastError: unknown;
+  for (const mt of candidates) {
+    try {
+      return await tryCreateFFmpeg(mt);
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Failed to init ffmpeg');
 }
 
 export async function generateOfficialAudioWith(ffmpeg: FFmpeg, { audioFile, imageFile, quality = 'fast', onProgress }: GenerateArgs): Promise<string> {
@@ -74,10 +109,13 @@ export async function generateOfficialAudioWith(ffmpeg: FFmpeg, { audioFile, ima
   const imageName = `cover.png`;
   const outName = "output.mp4";
 
-  // wire progress callback for this run
   if (onProgress) progressMap.set(ffmpeg, onProgress);
 
-  // Precompose image to target canvas (letterbox) to avoid heavy FFmpeg scaling
+  try {
+    const dur = await getAudioDurationSec(audioFile);
+    if (dur && isFinite(dur)) durationMap.set(ffmpeg, dur);
+  } catch {}
+
   const composed = await precomposeCover(imageFile, profile.width, profile.height);
   await ffmpeg.writeFile(imageName, composed);
 
@@ -91,7 +129,6 @@ export async function generateOfficialAudioWith(ffmpeg: FFmpeg, { audioFile, ima
     "-framerate", String(profile.fps),
     "-i", imageName,
     "-i", audioName,
-    // No scaling: already composed to target size; ensure yuv420p for compatibility
     "-vf", "format=yuv420p",
     "-c:v", "libx264",
     "-preset", profile.preset,
@@ -118,8 +155,8 @@ export async function generateOfficialAudioWith(ffmpeg: FFmpeg, { audioFile, ima
     await ffmpeg.deleteFile(outName);
   } catch {}
 
-  // clear handler after run
   if (onProgress) progressMap.delete(ffmpeg);
+  durationMap.delete(ffmpeg);
 
   return url;
 }
@@ -152,17 +189,16 @@ async function precomposeCover(file: File, targetW: number, targetH: number): Pr
   try {
     const img = await loadImage(blobUrl);
     const { canvas, ctx } = createCanvas(targetW, targetH);
-    // fill background (letterbox color)
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, targetW, targetH);
-    // fit image into target with aspect ratio
-    const scale = Math.min(targetW / (img as any).width, targetH / (img as any).height);
-    const drawW = Math.round((img as any).width * scale);
-    const drawH = Math.round((img as any).height * scale);
+    const w = (img as any).width;
+    const h = (img as any).height;
+    const scale = Math.min(targetW / w, targetH / h);
+    const drawW = Math.round(w * scale);
+    const drawH = Math.round(h * scale);
     const dx = Math.round((targetW - drawW) / 2);
     const dy = Math.round((targetH - drawH) / 2);
-    // drawImage for ImageBitmap or HTMLImageElement
-    // @ts-ignore - TS can't infer overloaded drawImage types with union here
+    // @ts-ignore
     ctx.drawImage(img as any, dx, dy, drawW, drawH);
 
     const blob = await canvasToBlob(canvas, 'image/png');
@@ -206,5 +242,25 @@ async function canvasToBlob(canvas: HTMLCanvasElement | OffscreenCanvas, type: s
   }
   return new Promise<Blob>((resolve, reject) => {
     (canvas as HTMLCanvasElement).toBlob((b) => b ? resolve(b) : reject(new Error('toBlob failed')), type);
+  });
+}
+
+function getAudioDurationSec(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    try {
+      const url = URL.createObjectURL(file);
+      const audio = new Audio();
+      const cleanup = () => { URL.revokeObjectURL(url); };
+      audio.preload = 'metadata';
+      audio.onloadedmetadata = () => {
+        const dur = audio.duration;
+        cleanup();
+        resolve(dur && isFinite(dur) ? dur : 0);
+      };
+      audio.onerror = (e) => { cleanup(); resolve(0); };
+      audio.src = url;
+    } catch (e) {
+      resolve(0);
+    }
   });
 }

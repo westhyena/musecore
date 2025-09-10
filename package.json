@@ -5,8 +5,10 @@
 	"scripts": {
 		"dev": "react-router dev",
 		"typecheck": "react-router typegen && tsc --noEmit",
+		"prebuild": "node ./scripts/copy-ffmpeg-assets.mjs",
 		"build": "react-router build",
-		"start": "vite preview --port 4000 --strictPort"
+		"start": "vite preview --port 4000 --strictPort",
+		"prepare": "node ./scripts/copy-ffmpeg-assets.mjs || true"
 	},
 	"dependencies": {
 		"@auth/core": "^0.37.2",
