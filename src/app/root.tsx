@@ -378,9 +378,13 @@ export function Layout({ children }: { children: ReactNode }) {
         {/* AdSense 스크립트는 초기 렌더 이후에만 로드 (hydrate 불일치 방지) */}
       </head>
       <body>
+        <div className="flex flex-col min-h-screen max-h-screen">
         <ClientOnly loader={() => children} />
+          <div>
+        <ClientOnly loader={() => <BannerAd position="bottom" />} />
+        </div>
+        </div>
         <ClientOnly loader={() => <AdSenseScriptLoader />} />
-        {/* <ClientOnly loader={() => <BannerAd position="bottom" />} /> */}
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <ScrollRestoration />

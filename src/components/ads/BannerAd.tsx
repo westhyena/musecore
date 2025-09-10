@@ -61,7 +61,7 @@ export default function BannerAd({ slotId, className, position = 'inline' }: Ban
         style={{ display: 'block', width: '100%', minHeight: 60 }}
         data-ad-client={clientId}
         data-ad-slot={resolvedSlotId}
-        data-ad-format="auto"
+        data-ad-format="horizontal"
         data-full-width-responsive="true"
         // Only in dev, mark as test ads
         {...(!isProduction ? { 'data-adtest': 'on' } : {})}
