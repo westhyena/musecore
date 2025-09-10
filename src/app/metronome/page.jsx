@@ -8,6 +8,7 @@ import {
   Settings,
   ChevronDown,
 } from "lucide-react";
+import AppLayout from '@/components/layout/AppLayout';
 
 export default function MetronomePage() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -134,7 +135,6 @@ export default function MetronomePage() {
     setCurrentBeat(0);
   }, []);
 
-  // Tap tempo functionality
   const handleTapTempo = useCallback(() => {
     const now = Date.now();
     setTapTimes((prev) => {
@@ -160,7 +160,6 @@ export default function MetronomePage() {
     });
   }, []);
 
-  // Clear tap tempo after 3 seconds of inactivity
   useEffect(() => {
     const timer = setTimeout(() => {
       setTapTimes([]);
@@ -191,7 +190,6 @@ export default function MetronomePage() {
     };
   }, [stopMetronome]);
 
-  // Generate beat indicators for visualization
   const renderBeatIndicators = () => {
     const currentSig = getCurrentTimeSignature();
     const beatsPerMeasure = currentSig.beats;
@@ -216,210 +214,171 @@ export default function MetronomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white pb-20">
-      {/* Logo Bar */}
-      <div className="bg-slate-900/95 backdrop-blur-sm border-b border-white/20 px-4 py-4 sticky top-0 z-50">
-        <div className="max-w-2xl mx-auto">
-          <a href="/" className="block text-center">
-            <h1 className="text-2xl font-light text-purple-100 hover:text-white transition-colors duration-200 tracking-wide">
-              MUSE CORE
-            </h1>
-          </a>
-        </div>
+    <AppLayout title="MUSE CORE" containerMaxWidthClassName="max-w-2xl">
+      {/* Page Title */}
+      <div className="text-center mb-6">
+        <h2 className="text-3xl font-light mb-4 text-purple-100">
+          Metronome
+        </h2>
       </div>
 
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* Page Title */}
+      {/* Metronome Section */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+        {/* BPM Display & Beat Visualization Combined */}
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-light mb-4 text-purple-100">
-            Metronome
-          </h2>
+          <div className="text-6xl font-light mb-2 text-white">{bpm}</div>
+          <div className="text-purple-300 text-lg mb-4">BPM</div>
+
+          {/* Beat Visualization */}
+          <div className="flex justify-center gap-2 mb-2">
+            {renderBeatIndicators()}
+          </div>
+          <div className="text-sm text-purple-400">
+            {getCurrentTimeSignature().name}
+          </div>
         </div>
 
-        {/* Metronome Section */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-          {/* BPM Display & Beat Visualization Combined */}
-          <div className="text-center mb-6">
-            <div className="text-6xl font-light mb-2 text-white">{bpm}</div>
-            <div className="text-purple-300 text-lg mb-4">BPM</div>
-
-            {/* Beat Visualization */}
-            <div className="flex justify-center gap-2 mb-2">
-              {renderBeatIndicators()}
-            </div>
-            <div className="text-sm text-purple-400">
-              {getCurrentTimeSignature().name}
-            </div>
-          </div>
-
-          {/* Time Signature Controls */}
-          <div className="mb-6">
-            {/* Preset Time Signatures */}
-            <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {Object.entries(timeSignatures).map(([sig, info]) => (
-                <button
-                  key={sig}
-                  onClick={() => {
-                    setTimeSignature(sig);
-                    setShowCustomize(false);
-                  }}
-                  className={`px-3 py-1 rounded-lg text-sm transition-colors duration-200 ${
-                    timeSignature === sig && !showCustomize
-                      ? "bg-purple-600 text-white"
-                      : "bg-white/20 text-purple-300 hover:bg-white/30"
-                  }`}
-                >
-                  {sig}
-                </button>
-              ))}
-            </div>
-
-            {/* Customize Button */}
-            <div className="text-center mb-4">
+        {/* Time Signature Controls */}
+        <div className="mb-6">
+          {/* Preset Time Signatures */}
+          <div className="flex flex-wrap gap-2 justify-center mb-4">
+            {Object.entries(timeSignatures).map(([sig, info]) => (
               <button
-                onClick={() => setShowCustomize(!showCustomize)}
-                className={`px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center gap-2 mx-auto ${
-                  showCustomize
+                key={sig}
+                onClick={() => {
+                  setTimeSignature(sig);
+                  setShowCustomize(false);
+                }}
+                className={`px-3 py-1 rounded-lg text-sm transition-colors duration-200 ${
+                  timeSignature === sig && !showCustomize
                     ? "bg-purple-600 text-white"
                     : "bg-white/20 text-purple-300 hover:bg-white/30"
                 }`}
               >
-                <Settings size={14} />
-                {showCustomize ? "Hide Custom" : "Customize"}
+                {sig}
               </button>
-            </div>
-
-            {/* Custom Input - Only show when customize is active */}
-            {showCustomize && (
-              <div className="mb-4">
-                <div className="flex items-center justify-center gap-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-purple-300">Beats:</label>
-                    <select
-                      value={customNumerator}
-                      onChange={(e) =>
-                        setCustomNumerator(parseInt(e.target.value))
-                      }
-                      className="px-2 py-1 bg-white/20 border border-white/30 rounded text-white focus:outline-none focus:border-purple-400"
-                    >
-                      {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => (
-                        <option key={num} value={num}>
-                          {num}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="text-purple-300">/</div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-purple-300">Note:</label>
-                    <select
-                      value={customDenominator}
-                      onChange={(e) =>
-                        setCustomDenominator(parseInt(e.target.value))
-                      }
-                      className="px-2 py-1 bg-white/20 border border-white/30 rounded text-white focus:outline-none focus:border-purple-400"
-                    >
-                      <option value={2}>2</option>
-                      <option value={4}>4</option>
-                      <option value={8}>8</option>
-                      <option value={16}>16</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="text-center text-xs text-purple-400">
-                  Current: {customNumerator}/{customDenominator}
-                </div>
-              </div>
-            )}
-
-            {/* BPM Slider */}
-            <input
-              type="range"
-              min="40"
-              max="200"
-              value={bpm}
-              onChange={(e) => setBpm(parseInt(e.target.value))}
-              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer mb-2"
-              style={{
-                background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.2) ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.2) 100%)`,
-              }}
-            />
-            <div className="flex justify-between text-xs text-purple-300 mb-4">
-              <span>40</span>
-              <span className="text-sm">
-                {bpm < 60 && "Largo"}
-                {bpm >= 60 && bpm < 72 && "Adagio"}
-                {bpm >= 72 && bpm < 108 && "Andante"}
-                {bpm >= 108 && bpm < 132 && "Moderato"}
-                {bpm >= 132 && bpm < 168 && "Allegro"}
-                {bpm >= 168 && "Presto"}
-              </span>
-              <span>200</span>
-            </div>
+            ))}
           </div>
 
-          {/* Tap Tempo & Volume Combined */}
-          <div className="">
-            <div className="flex gap-3 mb-3">
-              <button
-                onClick={handleTapTempo}
-                className="flex-1 bg-white/20 hover:bg-white/30 transition-colors duration-200 rounded-lg py-3 flex items-center justify-center gap-2 text-sm font-medium text-purple-200 hover:text-white"
-              >
-                <Hand size={18} />
-                Tap Tempo
-              </button>
+          {/* Customize Button */}
+          <div className="text-center mb-4">
+            <button
+              onClick={() => setShowCustomize(!showCustomize)}
+              className={`px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center gap-2 mx-auto ${
+                showCustomize
+                  ? "bg-purple-600 text-white"
+                  : "bg-white/20 text-purple-300 hover:bg-white/30"
+              }`}
+            >
+              <Settings size={14} />
+              {showCustomize ? "Hide Custom" : "Customize"}
+            </button>
+          </div>
 
-              <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-2">
-                <Volume2 size={18} className="text-purple-300" />
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  value={volume}
-                  onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-16 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%, rgba(255,255,255,0.2) 100%)`,
-                  }}
-                />
+          {/* Custom Input - Only show when customize is active */}
+          {showCustomize && (
+            <div className="mb-4">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-purple-300">Beats:</label>
+                  <select
+                    value={customNumerator}
+                    onChange={(e) =>
+                      setCustomNumerator(parseInt(e.target.value))
+                    }
+                    className="px-2 py-1 bg-white/20 border border-white/30 rounded text-white focus:outline-none focus:border-purple-400"
+                  >
+                    {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="text-purple-300">/</div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-purple-300">Note:</label>
+                  <select
+                    value={customDenominator}
+                    onChange={(e) =>
+                      setCustomDenominator(parseInt(e.target.value))
+                    }
+                    className="px-2 py-1 bg-white/20 border border-white/30 rounded text-white focus:outline-none focus:border-purple-400"
+                  >
+                    <option value={2}>2</option>
+                    <option value={4}>4</option>
+                    <option value={8}>8</option>
+                    <option value={16}>16</option>
+                  </select>
+                </div>
               </div>
-            </div>
-
-            {tapTimes.length > 0 && (
               <div className="text-center text-xs text-purple-400">
-                Tapped {tapTimes.length} time{tapTimes.length > 1 ? "s" : ""}
+                Current: {customNumerator}/{customDenominator}
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Fixed Bottom Navigation with Action Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-sm border-t border-white/20 px-4 py-3 safe-area-pb">
-        <div className="max-w-md mx-auto">
-          {/* Main Action Button */}
-          <button
-            onClick={isPlaying ? stopMetronome : startMetronome}
-            className="w-full bg-purple-600 hover:bg-purple-700 transition-colors duration-200 rounded-xl py-4 flex items-center justify-center gap-3 text-lg font-medium shadow-lg hover:shadow-xl mb-3"
-          >
-            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-            {isPlaying ? "Stop" : "Start"}
-          </button>
-
-          {/* Navigation Tabs */}
-          <div className="flex gap-2 justify-center">
-            <div className="bg-purple-600 px-6 py-3 rounded-full text-white font-medium flex-1 text-center">
-              Metronome
             </div>
-            <a href="/tuner" className="flex-1">
-              <div className="bg-white/20 hover:bg-white/30 transition-colors duration-200 px-6 py-3 rounded-full text-purple-200 hover:text-white cursor-pointer text-center">
-                Tuner
-              </div>
-            </a>
+          )}
+
+          {/* BPM Slider */}
+          <input
+            type="range"
+            min="40"
+            max="200"
+            value={bpm}
+            onChange={(e) => setBpm(parseInt(e.target.value))}
+            className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer mb-2"
+            style={{
+              background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.2) ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.2) 100%)`,
+            }}
+          />
+          <div className="flex justify-between text-xs text-purple-300 mb-4">
+            <span>40</span>
+            <span className="text-sm">
+              {bpm < 60 && "Largo"}
+              {bpm >= 60 && bpm < 72 && "Adagio"}
+              {bpm >= 72 && bpm < 108 && "Andante"}
+              {bpm >= 108 && bpm < 132 && "Moderato"}
+              {bpm >= 132 && bpm < 168 && "Allegro"}
+              {bpm >= 168 && "Presto"}
+            </span>
+            <span>200</span>
           </div>
         </div>
+
+        {/* Tap Tempo & Volume Combined */}
+        <div className="">
+          <div className="flex gap-3 mb-3">
+            <button
+              onClick={handleTapTempo}
+              className="flex-1 bg-white/20 hover:bg-white/30 transition-colors duration-200 rounded-lg py-3 flex items-center justify-center gap-2 text-sm font-medium text-purple-200 hover:text-white"
+            >
+              <Hand size={18} />
+              Tap Tempo
+            </button>
+
+            <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-2">
+              <Volume2 size={18} className="text-purple-300" />
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                className="w-16 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%, rgba(255,255,255,0.2) 100%)`,
+                }}
+              />
+            </div>
+          </div>
+
+          {tapTimes.length > 0 && (
+            <div className="text-center text-xs text-purple-400">
+              Tapped {tapTimes.length} time{tapTimes.length > 1 ? "s" : ""}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

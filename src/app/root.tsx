@@ -380,7 +380,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <body>
         <ClientOnly loader={() => children} />
         <ClientOnly loader={() => <AdSenseScriptLoader />} />
-        <ClientOnly loader={() => <BannerAd position="bottom" />} />
+        {/* <ClientOnly loader={() => <BannerAd position="bottom" />} /> */}
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <ScrollRestoration />
