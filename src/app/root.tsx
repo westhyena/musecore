@@ -375,17 +375,12 @@ export function Layout({ children }: { children: ReactNode }) {
         <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         <link rel="icon" href="/src/__create/favicon.png" />
         <LoadFonts />
-        {import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT ? (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT}`}
-            crossOrigin="anonymous"
-          />
-        ) : null}
+        {/* AdSense 스크립트는 초기 렌더 이후에만 로드 (hydrate 불일치 방지) */}
       </head>
       <body>
         <ClientOnly loader={() => children} />
-        <BannerAd position="bottom" />
+        <ClientOnly loader={() => <AdSenseScriptLoader />} />
+        <ClientOnly loader={() => <BannerAd position="bottom" />} />
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <ScrollRestoration />
@@ -399,3 +394,22 @@ export function Layout({ children }: { children: ReactNode }) {
 export default function App() {
   return <Outlet />;
 }
+
+// Loads Google AdSense script after mount to avoid hydration mismatches
+const AdSenseScriptLoader: FC = () => {
+  useEffect(() => {
+    const clientId = import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT as string | undefined;
+    if (!clientId) return;
+    const existing = document.querySelector(
+      'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+    ) as HTMLScriptElement | null;
+    if (existing) return;
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
+  }, []);
+  return null;
+};
