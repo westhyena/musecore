@@ -28,6 +28,7 @@ import { Toaster } from 'sonner';
 // @ts-ignore
 import { LoadFonts } from 'virtual:load-fonts.jsx';
 import { HotReloadIndicator } from '../__create/HotReload';
+import BannerAd from '@/components/ads/BannerAd';
 import { useSandboxStore } from '../__create/hmr-sandbox-store';
 import type { Route } from './+types/root';
 import { useDevServerHeartbeat } from '../__create/useDevServerHeartbeat';
@@ -374,9 +375,17 @@ export function Layout({ children }: { children: ReactNode }) {
         <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         <link rel="icon" href="/src/__create/favicon.png" />
         <LoadFonts />
+        {import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT ? (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        ) : null}
       </head>
       <body>
         <ClientOnly loader={() => children} />
+        <BannerAd position="bottom" />
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <ScrollRestoration />
