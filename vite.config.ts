@@ -81,14 +81,12 @@ export default defineConfig({
       clientFiles: ['./src/app/**/*', './src/app/root.tsx', './src/app/routes.ts'],
     },
     headers: {
-      'Cross-Origin-Embedder-Policy': 'credentialless',
-      'Cross-Origin-Opener-Policy': 'same-origin',
+      // Remove COEP in dev to allow third‑party iframes (e.g., AdSense)
     },
   },
   preview: {
     headers: {
-      'Cross-Origin-Embedder-Policy': 'credentialless',
-      'Cross-Origin-Opener-Policy': 'same-origin',
+      // Remove COEP in preview to allow third‑party iframes (e.g., AdSense)
     },
   },
 });
