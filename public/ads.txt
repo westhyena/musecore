@@ -1,0 +1,6 @@
+# Authorized Digital Sellers (ads.txt)
+# Replace with your real AdSense publisher ID.
+# Format: domain, publisher-id, relationship, certification-authority-id
+
+google.com, pub-5005824228769617, DIRECT, f08c47fec0942fa0
+
