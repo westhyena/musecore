@@ -380,9 +380,11 @@ export function Layout({ children }: { children: ReactNode }) {
       <body>
         <div className="flex flex-col min-h-screen max-h-screen">
         <ClientOnly loader={() => children} />
-          <div>
-        <ClientOnly loader={() => <BannerAd position="bottom" />} />
-        </div>
+          {pathname !== '/' ? (
+            <div>
+              <ClientOnly loader={() => <BannerAd position="bottom" />} />
+            </div>
+          ) : null}
         </div>
         <ClientOnly loader={() => <AdSenseScriptLoader />} />
         <HotReloadIndicator />
