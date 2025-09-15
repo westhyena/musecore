@@ -28,7 +28,7 @@ import { Toaster } from 'sonner';
 // @ts-ignore
 import { LoadFonts } from 'virtual:load-fonts.jsx';
 import { HotReloadIndicator } from '../__create/HotReload';
-import BannerAd from '@/components/ads/BannerAd';
+// import BannerAd from '@/components/ads/BannerAd';
 import { useSandboxStore } from '../__create/hmr-sandbox-store';
 import type { Route } from './+types/root';
 import { useDevServerHeartbeat } from '../__create/useDevServerHeartbeat';
@@ -370,6 +370,9 @@ export function Layout({ children }: { children: ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT ? (
+          <meta name="google-adsense-account" content={import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT as string} />
+        ) : null}
         <Meta />
         <Links />
         <script type="module" src="/src/__create/dev-error-overlay.js"></script>
@@ -386,7 +389,13 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           ) : null} */}
         </div>
-        <ClientOnly loader={() => <AdSenseScriptLoader />} />
+        <ClientOnly
+          loader={() => (
+            <AdSenseScriptLoader
+              enabled={!(pathname === '/' || pathname?.startsWith('/metronome') || pathname?.startsWith('/tuner'))}
+            />
+          )}
+        />
         <HotReloadIndicator />
         <Toaster position="bottom-right" />
         <ScrollRestoration />
@@ -402,8 +411,9 @@ export default function App() {
 }
 
 // Loads Google AdSense script after mount to avoid hydration mismatches
-const AdSenseScriptLoader: FC = () => {
+const AdSenseScriptLoader: FC<{ enabled?: boolean }> = ({ enabled = true }) => {
   useEffect(() => {
+    if (!enabled) return;
     const clientId = import.meta.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT as string | undefined;
     if (!clientId) return;
     const existing = document.querySelector(
@@ -416,6 +426,6 @@ const AdSenseScriptLoader: FC = () => {
     script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
     script.crossOrigin = 'anonymous';
     document.head.appendChild(script);
-  }, []);
+  }, [enabled]);
   return null;
 };
