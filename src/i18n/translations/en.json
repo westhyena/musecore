@@ -240,6 +240,40 @@
       "content": "We may modify or discontinue the service at any time. We may also update these Terms of Service. Continued use after changes constitutes acceptance. If you do not agree to updated terms, please stop using the service."
     }
   },
+  "contact": {
+    "title": "Contact",
+    "description": "Have a question or feedback? Send us a message and we'll get back to you.",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "message": "Message",
+    "messagePlaceholder": "Your message...",
+    "submit": "Send",
+    "sending": "Sending...",
+    "success": "Thank you! Your message has been sent.",
+    "error": "Something went wrong. Please try again.",
+    "subject": "MUSE CORE Contact Form"
+  },
+  "about": {
+    "title": "About Us",
+    "section1": {
+      "title": "MUSE CORE",
+      "content": "MUSE CORE is a collection of music utilities for musicians and artists. From practice tools like metronome and tuner to release-ready tools like official audio generation and mastering—everything runs in your browser with no sign-up required. All processing happens locally; your audio and data never leave your device."
+    },
+    "section2": {
+      "title": "Developer",
+      "content": "MUSE CORE is created by Chaez.",
+      "role1": "Musician / Artist",
+      "role2": "Software Engineer",
+      "role3": "Music Studio Owner"
+    },
+    "section3": {
+      "title": "Support",
+      "content": "If MUSE CORE has been helpful, you can buy me a coffee via Ko-fi. Your support helps keep this project running.",
+      "button": "Buy me a coffee on Ko-fi"
+    }
+  },
   "contentPlaceholder": {
     "defaultTitle": "Guide & Tips",
     "defaultText1": "This area can hold usage tips or guide content. Sufficient text helps UX and SEO.",

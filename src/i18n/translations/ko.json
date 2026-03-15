@@ -240,6 +240,40 @@
       "content": "당사는 언제든지 서비스를 수정하거나 중단할 수 있습니다. 본 이용약관도 업데이트할 수 있습니다. 변경 후에도 서비스를 계속 이용하면 변경 사항에 동의한 것으로 간주됩니다. 변경된 약관에 동의하지 않으시면 서비스 이용을 중단해 주세요."
     }
   },
+  "contact": {
+    "title": "Contact",
+    "description": "문의나 피드백이 있으시면 메시지를 보내주세요. 빠르게 답변드리겠습니다.",
+    "name": "이름",
+    "namePlaceholder": "이름을 입력하세요",
+    "email": "이메일",
+    "emailPlaceholder": "your@email.com",
+    "message": "메시지",
+    "messagePlaceholder": "메시지를 입력하세요...",
+    "submit": "보내기",
+    "sending": "전송 중...",
+    "success": "감사합니다! 메시지가 전송되었습니다.",
+    "error": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "subject": "MUSE CORE 문의"
+  },
+  "about": {
+    "title": "About Us",
+    "section1": {
+      "title": "MUSE CORE",
+      "content": "MUSE CORE는 뮤지션과 아티스트를 위한 음악 유틸리티 모음입니다. 메트로놈, 튜너 같은 연습 도구부터 공식 오디오 제작, 마스터링 같은 발매 준비 도구까지, 회원가입 없이 브라우저에서 바로 사용할 수 있습니다. 모든 처리는 로컬에서 이루어지며, 오디오와 데이터는 사용자 기기를 벗어나지 않습니다."
+    },
+    "section2": {
+      "title": "개발자",
+      "content": "MUSE CORE는 Chaez가 제작했습니다.",
+      "role1": "Musician / Artist",
+      "role2": "Software Engineer",
+      "role3": "Music Studio Owner"
+    },
+    "section3": {
+      "title": "후원",
+      "content": "MUSE CORE가 도움이 되었다면, Ko-fi를 통해 커피 한 잔을 사주실 수 있습니다. 후원은 프로젝트가 계속 유지되는 데 큰 도움이 됩니다.",
+      "button": "Ko-fi로 커피 사주기"
+    }
+  },
   "contentPlaceholder": {
     "defaultTitle": "가이드 및 활용법",
     "defaultText1": "이 영역에는 해당 도구의 사용법, 팁, 또는 관련 가이드 콘텐츠를 채워 넣을 수 있습니다. 충분한 텍스트 콘텐츠는 사용자 경험과 검색 최적화에 도움이 됩니다.",
