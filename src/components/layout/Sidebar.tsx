@@ -1,12 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "react-router";
-import { Play, Mic, Video, Wand2, Home, Menu, X } from "lucide-react";
+import { Play, Mic, Video, Wand2, Home, Menu, X, BarChart2 } from "lucide-react";
 import { useI18n } from "@/i18n/I18nContext";
 
 const menuItems = [
   { path: "/", labelKey: "nav.home", icon: Home },
   { path: "/metronome", labelKey: "nav.metronome", icon: Play },
   { path: "/tuner", labelKey: "nav.tuner", icon: Mic },
+  { path: "/audio-analyzer", labelKey: "nav.audioAnalyzer", icon: BarChart2 },
   { path: "/official-audio", labelKey: "nav.officialAudio", icon: Video },
   { path: "/mastering", labelKey: "nav.mastering", icon: Wand2 },
 ];

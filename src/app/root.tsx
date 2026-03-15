@@ -386,7 +386,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <ClientOnly
           loader={() => (
             <AdSenseScriptLoader
-              enabled={!(pathname === '/' || pathname?.startsWith('/metronome') || pathname?.startsWith('/tuner'))}
+              enabled={!(pathname === '/' || pathname?.startsWith('/metronome') || pathname?.startsWith('/tuner') || pathname?.startsWith('/audio-analyzer'))}
             />
           )}
         />

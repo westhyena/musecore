@@ -11,6 +11,7 @@
     "home": "Home",
     "metronome": "Metronome",
     "tuner": "Tuner",
+    "audioAnalyzer": "BPM/Key",
     "officialAudio": "Official Audio",
     "mastering": "Mastering",
     "menuOpen": "Open menu",
@@ -48,6 +49,11 @@
       "title": "Mastering",
       "desc": "High-pass, compressor, loudness, limiter chain",
       "features": ["WAV/M4A output", "Presets", "Parallel processing"]
+    },
+    "audioAnalyzer": {
+      "title": "BPM/Key",
+      "desc": "Analyze BPM and Key of audio files in the browser",
+      "features": ["BPM extraction", "Key detection", "100% local"]
     }
   },
   "metronome": {
@@ -186,6 +192,34 @@
       "Very long files (e.g., over an hour) or large batches may fail due to browser memory limits. Processing speed depends on CPU and file length. Keep the tab open until jobs complete. The cancel button stops in-progress jobs, but completed files remain available for download.",
       "Tips",
       "Ensure your mix is finished before mastering. Heavy clipping or noise is hard to fix with mastering alone. Try different presets to find the right fit, and consider exporting both streaming and loud versions. For complex projects, consider working with a professional mastering engineer."
+    ]
+  },
+  "audioAnalyzer": {
+    "title": "BPM / Key Analysis",
+    "subtitle": "Analyze BPM and Key of audio files directly in your browser.",
+    "audioFile": "Audio file",
+    "dropLabel": "Click or drag a file to select",
+    "dragHint": "Supports MP3, WAV, M4A, OGG, FLAC, etc.",
+    "analyzing": "Analyzing",
+    "results": "Results",
+    "bpm": "BPM",
+    "key": "Key",
+    "privacyNotice": "This data was processed only on your device. It was not sent to any server.",
+    "rightSlot": "BPM/Key Analyzer",
+    "contentTitle": "BPM/Key Analysis Guide",
+    "guideItems": [
+      "Supports MP3, WAV, M4A, OGG, FLAC, and more.",
+      "Analysis may take several seconds to a minute.",
+      "Longer audio files take more time to process."
+    ],
+    "contentGuideItems": [
+      "The BPM/Key analyzer detects tempo (BPM) and key of audio files directly in your browser. It uses Essentia.js (WASM) and processes everything on your device. Useful for DJ mixing, remixing, sampling, and practice.",
+      "What is BPM",
+      "BPM (Beats Per Minute) is the number of beats per minute. 60 BPM means one beat per second; 120 BPM means two beats per second. Knowing BPM helps when mixing two tracks or when remixing and sampling.",
+      "What is Key",
+      "Key indicates the tonal center of a track (e.g., C Major, A Minor). Mixing compatible keys produces smoother transitions. The Camelot Wheel can help you find keys that mix well together.",
+      "Accuracy",
+      "Results are for reference only. Complex rhythms, tempo changes, or highly dynamic tracks may yield less accurate BPM or Key. Using files with at least 30 seconds of audio tends to give more stable results."
     ]
   },
   "privacy": {

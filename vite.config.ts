@@ -66,6 +66,9 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   clearScreen: false,
+  worker: {
+    format: 'es',
+  },
   // Ensure build output supports top-level await
   build: {
     target: 'es2022',

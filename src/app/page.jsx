@@ -1,4 +1,4 @@
-import { Play, Mic, Video, Wand2, Shield } from "lucide-react";
+import { Play, Mic, Video, Wand2, Shield, BarChart2 } from "lucide-react";
 import AppLayout from '@/components/layout/AppLayout';
 import { useI18n } from '@/i18n/I18nContext';
 
@@ -32,7 +32,7 @@ export default function HomePage() {
           {t("home.chooseTool")}
         </p>
       </div>
-      <div className="grid md:grid-cols-2 gap-8 md:items-stretch">
+      <div className="grid md:grid-cols-3 gap-8 md:items-stretch">
         <a href="/metronome" className="group block h-full">
           <div className="daw-card h-full p-8 transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#007AFF]/30 flex flex-col">
             <div className="text-center">
@@ -76,6 +76,30 @@ export default function HomePage() {
                 <span>• {t("home.tuner.features.0")}</span>
                 <span>• {t("home.tuner.features.1")}</span>
                 <span>• {t("home.tuner.features.2")}</span>
+              </div>
+            </div>
+          </div>
+        </a>
+
+        <a href="/audio-analyzer" className="group block h-full">
+          <div className="daw-card h-full p-8 transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#007AFF]/30 flex flex-col">
+            <div className="text-center">
+              <div className="mb-6">
+                <BarChart2
+                  size={64}
+                  className="mx-auto text-[#007AFF] group-hover:text-[#39FF14] transition-colors"
+                />
+              </div>
+              <h2 className="text-3xl font-light mb-4 text-white tracking-tight">
+                {t("home.audioAnalyzer.title")}
+              </h2>
+              <p className="text-[#9ca3af] mb-6">
+                {t("home.audioAnalyzer.desc")}
+              </p>
+              <div className="flex justify-center gap-4 text-sm text-[#6b7280]">
+                <span>• {t("home.audioAnalyzer.features.0")}</span>
+                <span>• {t("home.audioAnalyzer.features.1")}</span>
+                <span>• {t("home.audioAnalyzer.features.2")}</span>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 
 const root = resolve(process.cwd());
 const pub = resolve(root, 'public/ffmpeg');
+const essentiaPub = resolve(root, 'public/essentia');
 
 function ensureDir(p) {
   try { mkdirSync(p, { recursive: true }); } catch {}
@@ -41,5 +42,11 @@ copy(coreStWasm, destCoreStWasm);
 copy(coreMtJs, destCoreMtJs);
 copy(coreMtWasm, destCoreMtWasm);
 copy(coreMtWorker, destCoreMtWorker);
+
+// Essentia.js WASM (for BPM/Key analysis)
+const essentiaWasm = resolve(root, 'node_modules/essentia.js/dist/essentia-wasm.web.wasm');
+const destEssentiaWasm = resolve(essentiaPub, 'essentia-wasm.web.wasm');
+ensureDir(essentiaPub);
+copy(essentiaWasm, destEssentiaWasm);
 
 console.log('[ffmpeg-assets] done');
