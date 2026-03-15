@@ -28,7 +28,6 @@ import { Toaster } from 'sonner';
 // @ts-ignore
 import { LoadFonts } from 'virtual:load-fonts.jsx';
 import { HotReloadIndicator } from '../__create/HotReload';
-// import BannerAd from '@/components/ads/BannerAd';
 import { useSandboxStore } from '../__create/hmr-sandbox-store';
 import type { Route } from './+types/root';
 import { useDevServerHeartbeat } from '../__create/useDevServerHeartbeat';
@@ -381,13 +380,8 @@ export function Layout({ children }: { children: ReactNode }) {
         {/* AdSense 스크립트는 초기 렌더 이후에만 로드 (hydrate 불일치 방지) */}
       </head>
       <body>
-        <div className="flex flex-col min-h-screen max-h-screen">
+        <div className="flex flex-col min-h-screen">
         <ClientOnly loader={() => children} />
-          {/* {pathname !== '/' ? (
-            <div>
-              <ClientOnly loader={() => <BannerAd position="bottom" />} />
-            </div>
-          ) : null} */}
         </div>
         <ClientOnly
           loader={() => (
