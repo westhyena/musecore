@@ -1,4 +1,4 @@
-import { Play, Mic, Music, Video, Wand2 } from "lucide-react";
+import { Play, Mic, Video, Wand2, Shield } from "lucide-react";
 import AppLayout from '@/components/layout/AppLayout';
 import { useI18n } from '@/i18n/I18nContext';
 
@@ -7,15 +7,31 @@ export default function HomePage() {
 
   return (
     <AppLayout title="MUSE CORE" containerMaxWidthClassName="max-w-4xl">
+      {/* Hero: MUSE CORE 소개 + 프라이버시 강조 */}
       <div className="text-center mb-12">
-        <h2 className="text-5xl font-light mb-6 text-white tracking-tight">
+        <h1 className="text-5xl font-light mb-4 text-white tracking-tight">
           {t("home.title")}
-        </h2>
-        <p className="text-xl text-[#9ca3af] mb-8 tracking-tight">
-          {t("home.subtitle")}
+        </h1>
+        <p className="text-xl text-[#007AFF] font-medium mb-6 tracking-tight">
+          {t("home.tagline")}
         </p>
+        <p className="text-lg text-[#9ca3af] mb-8 max-w-2xl mx-auto leading-relaxed">
+          {t("home.description")}
+        </p>
+        <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-[#007AFF]/10 border border-[#007AFF]/20">
+          <Shield size={20} className="text-[#007AFF] flex-shrink-0" />
+          <p className="text-sm text-[#9ca3af] text-left">
+            {t("home.privacy")}
+          </p>
+        </div>
       </div>
 
+      {/* 도구 선택 카드 */}
+      <div className="text-center mt-12 mb-12">
+        <p className="text-[#9ca3af] text-lg tracking-tight">
+          {t("home.chooseTool")}
+        </p>
+      </div>
       <div className="grid md:grid-cols-2 gap-8 md:items-stretch">
         <a href="/metronome" className="group block h-full">
           <div className="daw-card h-full p-8 transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#007AFF]/30 flex flex-col">
@@ -114,12 +130,6 @@ export default function HomePage() {
             </div>
           </div>
         </a>
-      </div>
-
-      <div className="text-center mt-12">
-        <p className="text-[#9ca3af] text-lg tracking-tight">
-          {t("home.chooseTool")}
-        </p>
       </div>
     </AppLayout>
   );

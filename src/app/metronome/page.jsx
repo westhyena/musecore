@@ -11,7 +11,7 @@ import ContentPlaceholder from '@/components/layout/ContentPlaceholder';
 import { useI18n } from '@/i18n/I18nContext';
 
 export default function MetronomePage() {
-  const { t } = useI18n();
+  const { t, tArray } = useI18n();
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
   const [volume, setVolume] = useState(0.5);
@@ -190,7 +190,7 @@ export default function MetronomePage() {
   const beatsPerMeasure = currentSig.beats;
 
   return (
-    <AppLayout title="MUSE CORE" containerMaxWidthClassName="max-w-2xl">
+    <AppLayout title="MUSE CORE" rightSlot={<span>{t("metronome.rightSlot")}</span>} containerMaxWidthClassName="max-w-2xl">
       <div className="text-center mb-6">
         <h2 className="text-3xl font-light mb-4 text-white tracking-tight">
           {t("metronome.title")}
@@ -393,7 +393,21 @@ export default function MetronomePage() {
         </div>
       </div>
 
-      <ContentPlaceholder title={t("metronome.contentTitle")} />
+      <ContentPlaceholder title={t("metronome.contentTitle")}>
+        <div className="space-y-4">
+          {tArray("metronome.guideItems").map((item, i) =>
+            i % 2 === 1 ? (
+              <h3 key={i} className={`text-base font-semibold text-[#e5e5e5] mb-1 ${i === 1 ? 'mt-4' : 'mt-6'}`}>
+                {item}
+              </h3>
+            ) : (
+              <p key={i} className="text-sm leading-relaxed text-[#9ca3af]">
+                {item}
+              </p>
+            )
+          )}
+        </div>
+      </ContentPlaceholder>
     </AppLayout>
   );
 }

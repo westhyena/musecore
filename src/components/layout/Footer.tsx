@@ -5,8 +5,8 @@ export default function Footer() {
   const { t } = useI18n();
   return (
     <footer className="mt-auto border-t border-white/10 bg-[#0a0a0c]/80 backdrop-blur-sm">
-      <div className="container mx-auto max-w-5xl px-4 py-8">
-        <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+      <div className="container mx-auto max-w-5xl px-4 py-4">
+        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="text-sm text-[#9ca3af]">
             {t("footer.copyright", { year: new Date().getFullYear() })}
           </div>

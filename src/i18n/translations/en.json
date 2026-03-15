@@ -24,9 +24,11 @@
     "contact": "Contact"
   },
   "home": {
-    "title": "Music Tools",
-    "subtitle": "Professional metronome and tuner for musicians",
-    "chooseTool": "Choose your tool to get started",
+    "title": "MUSE CORE",
+    "tagline": "Utilities for musicians & artists",
+    "description": "Metronome, tuner, official audio, mastering—everything from practice to release, all in one place.",
+    "privacy": "All processing happens in your browser. No audio, images, or data are sent to any server—use with confidence, no leakage concerns.",
+    "chooseTool": "Choose a tool",
     "metronome": {
       "title": "Metronome",
       "desc": "Keep perfect time with adjustable BPM and volume controls",
@@ -73,7 +75,21 @@
       "irregular": "Irregular",
       "custom": "Custom {num}/{denom}"
     },
-    "contentTitle": "Metronome Guide"
+    "contentTitle": "Metronome Guide",
+    "rightSlot": "Metronome",
+    "guideItems": [
+      "A metronome is an essential tool for maintaining accurate rhythm while playing. Whether you practice piano, guitar, drums, violin, or any other instrument, it helps you develop a solid sense of timing and play at the tempo indicated on the score. This online metronome runs directly in your browser, so you can use it anytime without installing any app.",
+      "How to Use BPM",
+      "BPM (Beats Per Minute) indicates the number of beats per minute. Use the slider to set any tempo from 40 to 200 BPM. Slow pieces (ballads, adagio) typically use 60–80 BPM, medium tempos (andante, moderato) use 90–120 BPM, and fast pieces (allegro, presto) use 120–200 BPM. The tempo terms shown on screen (Largo, Adagio, Andante, Moderato, Allegro, Presto) help you understand classical tempo markings at a glance.",
+      "Time Signature Settings",
+      "4/4 time is the most common, with four beats per measure. 3/4 time is used for waltzes, and 2/4 suits marches. 6/8 is a compound duple meter often found in Irish music and some classical pieces. Odd meters like 5/4 appear in jazz tunes such as Take Five. Use the Customize button to set any time signature from 1 to 16 beats, ideal for varied practice sessions.",
+      "Using Tap Tempo",
+      "The Tap Tempo button lets you tap the beat to measure BPM. Tap 2–4 times in rhythm with the desired tempo, and the metronome will calculate and set the BPM automatically. This is useful when the score has no tempo marking or when you want to match a recording or streaming track. If you stop tapping for more than 3 seconds, the measurement resets—so tap continuously for the best result.",
+      "Practice Tips",
+      "Start at a slow tempo (60–80 BPM) and focus on locking in the beat. Rather than rushing to play fast, practice slowly and accurately first, then gradually increase the speed. Align your breathing with the downbeat (first beat) of the metronome, and stay relaxed on the weaker beats to improve your rhythm. Drummers and percussionists can practice groove with the metronome, while vocalists and orchestral players can work on phrasing and breath control.",
+      "More Use Cases",
+      "Beyond practice, metronomes are widely used in composing, recording, and rehearsals. Use it as a click track in your DAW or during recording sessions, or to align tempo in band rehearsals. Knowing the BPM also helps you understand a song's mood and genre. This tool supports 40–200 BPM, making it suitable for most musical styles and practice situations."
+    ]
   },
   "tuner": {
     "title": "Tuner",
@@ -84,7 +100,21 @@
     "cents": "Cents",
     "startTuner": "Start Tuner",
     "stopListening": "Stop Listening",
-    "contentTitle": "Tuner Guide"
+    "contentTitle": "Tuner Guide",
+    "rightSlot": "Tuner",
+    "guideItems": [
+      "A tuner is an essential tool for tuning your instrument to the correct pitch. Whether you play guitar, bass, violin, ukulele, mandolin, or wind instruments like flute and clarinet, a tuner helps you achieve accurate intonation. This online tuner analyzes sound in real time through your microphone and displays the pitch relative to standard A440. No app installation is required—use it directly in your browser at home, in the practice room, or at the venue.",
+      "Standard Pitch A440",
+      "A440 refers to the standard frequency of 440 Hz for the note A. It is the international reference (ISO 16) used by most orchestras and instrument makers. Some Baroque or classical ensembles use historical pitches like A415 or A432, but for general practice and performance, A440 is the norm. This tuner calculates pitches based on A440.",
+      "Understanding Cents",
+      "Cents are 1/100th of a semitone and indicate how far a note is from the correct pitch. A value near 0¢ means the note is in tune; +50¢ means a half step sharp, and -50¢ means a half step flat. The gauge needle moves from left (flat) to right (sharp), and when it points to the center, the note is correctly tuned. Within ±5¢ the display shows 'In Tune,' within ±15¢ it shows 'Close,' and beyond that 'Out of Tune.'",
+      "How to Use",
+      "Press 'Start Tuner' and allow microphone access when prompted. Then play one string or note at a time—the tuner will display the frequency and note name in real time. Playing multiple strings or notes at once makes detection difficult, so always play one at a time. A quiet environment gives the most accurate results; if there is background noise, bring the microphone closer to your instrument.",
+      "Tuning Tips by Instrument",
+      "Guitar & Bass: Tune from low to high strings (6th to 1st). After tuning one string, check the previous strings again as they may have shifted. Ukulele: standard tuning is G-C-E-A. Violin, viola, violoncello: fine-tuning matters—wait for the pitch to stabilize before adjusting the pegs. Wind instruments: sustain a single note so the tuner can lock onto the pitch.",
+      "Additional Tips",
+      "Checking tuning before practice helps you get more out of your sessions. Temperature and humidity can affect pitch, so it's a good idea to verify tuning at the start and midway through practice. This tuner detects frequencies from 70 to 1200 Hz, covering most common instrument ranges. Using headphones or earbuds lets you hear your instrument without the tuner's feedback interfering."
+    ]
   },
   "officialAudio": {
     "title": "Official Audio",
@@ -108,7 +138,18 @@
     "statusDone": "Done",
     "statusError": "Error",
     "rightSlot": "Official Audio Generator",
-    "contentTitle": "Official Audio Guide"
+    "contentTitle": "Official Audio Guide",
+    "contentGuideItems": [
+      "Official Audio Generator combines album art images with audio files to create MP4 videos ready for YouTube upload. You can produce 'official audio' style videos for music distribution, streaming uploads, and social sharing without separate video editing software—all in your browser. Multiple audio files can be processed in parallel to save time.",
+      "Required Files",
+      "You can select multiple audio files (MP3, WAV, etc.), and one album art image (PNG, JPG) is required. Use a square or 16:9 image at least 1080px wide for best results. The image is displayed as a static frame during playback, and the output uses H.264 video and AAC audio codecs for broad platform compatibility.",
+      "Quality Settings",
+      "Fast (2fps, 720p) encodes fastest and produces smaller files. Balanced (12fps, 1080p) offers a good balance of quality and speed for most official audio. High quality (24fps, 1080p) gives smoother video suitable for music videos or high-quality uploads. Processing time depends on your device and file count; parallel jobs are automatically adjusted based on CPU cores.",
+      "Generation and Download",
+      "Click 'Generate all' to create an MP4 for each audio file. Progress bars show the status of each job, and completed files appear with preview and download links. MP4 filenames match the original audio filenames. If memory runs low, the browser tab may close, so processing fewer files at a time is safer when working with many tracks.",
+      "Use Cases",
+      "Artists and labels can quickly create official audio videos for Spotify, YouTube Music, Apple Music, and more. Use it for pre-release singles, EPs, compilations, and full albums. No video editing experience is needed—just prepare your image and audio. This is especially useful for indie artists and small labels."
+    ]
   },
   "mastering": {
     "title": "Mastering",
@@ -134,7 +175,18 @@
       "Speed depends on device and file length."
     ],
     "rightSlot": "Mastering (ffmpeg.wasm)",
-    "contentTitle": "Mastering Guide"
+    "contentTitle": "Mastering Guide",
+    "contentGuideItems": [
+      "Mastering is the final polish applied to mixed audio. This tool runs a chain of high-pass filter, compressor, loudness normalizer, and limiter to produce levels suitable for streaming or podcast platforms. It runs in the browser using ffmpeg.wasm, so no software installation is required, and multiple files can be processed in parallel.",
+      "Choosing a Preset",
+      "Streaming (-14 LUFS) matches the recommended loudness for Spotify, Apple Music, YouTube, and most streaming services. Loud (-9 LUFS) suits genres that need more volume, such as EDM, hip-hop, and rock. Podcast (-16 LUFS) is tailored for podcast and voice content. Studio (WAV) outputs a lossless file for further editing or delivery to a mastering engineer. Each preset differs in loudness target and limiter settings.",
+      "Output Format",
+      "WAV (pcm_s16le) is lossless and ideal for archiving or further editing. M4A (AAC) is smaller and convenient for streaming uploads. Use M4A for platform uploads and WAV when you need a master archive.",
+      "Processing Notes",
+      "Very long files (e.g., over an hour) or large batches may fail due to browser memory limits. Processing speed depends on CPU and file length. Keep the tab open until jobs complete. The cancel button stops in-progress jobs, but completed files remain available for download.",
+      "Tips",
+      "Ensure your mix is finished before mastering. Heavy clipping or noise is hard to fix with mastering alone. Try different presets to find the right fit, and consider exporting both streaming and loud versions. For complex projects, consider working with a professional mastering engineer."
+    ]
   },
   "contentPlaceholder": {
     "defaultTitle": "Guide & Tips",

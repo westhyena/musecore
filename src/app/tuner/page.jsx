@@ -6,7 +6,7 @@ import ContentPlaceholder from '@/components/layout/ContentPlaceholder';
 import { useI18n } from '@/i18n/I18nContext';
 
 export default function TunerPage() {
-  const { t } = useI18n();
+  const { t, tArray } = useI18n();
   const [isListening, setIsListening] = useState(false);
   const [frequency, setFrequency] = useState(0);
   const [note, setNote] = useState("");
@@ -37,6 +37,35 @@ export default function TunerPage() {
   const getCents = (freq, targetFreq) => {
     return Math.round(1200 * Math.log2(freq / targetFreq));
   };
+
+  const drawWaveform = useCallback(() => {
+    const canvas = waveformCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    const data = waveformDataRef.current;
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = "rgba(156, 163, 175, 0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+
+    const sliceWidth = width / data.length;
+    let x = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      const v = data[i];
+      const y = (v * 0.5 + 0.5) * height;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      x += sliceWidth;
+    }
+
+    ctx.lineTo(width, height / 2);
+    ctx.stroke();
+  }, []);
 
   const analyzeAudio = useCallback(() => {
     if (!analyserRef.current || !audioContextRef.current) return;
@@ -93,35 +122,6 @@ export default function TunerPage() {
 
     animationRef.current = requestAnimationFrame(analyzeAudio);
   }, [drawWaveform]);
-
-  const drawWaveform = useCallback(() => {
-    const canvas = waveformCanvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    const data = waveformDataRef.current;
-    const width = canvas.width;
-    const height = canvas.height;
-
-    ctx.clearRect(0, 0, width, height);
-    ctx.strokeStyle = "rgba(156, 163, 175, 0.2)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-
-    const sliceWidth = width / data.length;
-    let x = 0;
-
-    for (let i = 0; i < data.length; i++) {
-      const v = data[i];
-      const y = (v * 0.5 + 0.5) * height;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-      x += sliceWidth;
-    }
-
-    ctx.lineTo(width, height / 2);
-    ctx.stroke();
-  }, []);
 
   const startTuner = async () => {
     try {
@@ -198,7 +198,7 @@ export default function TunerPage() {
   const needleAngle = Math.max(-90, Math.min(90, (cents / 50) * 90));
 
   return (
-    <AppLayout title="MUSE CORE" containerMaxWidthClassName="max-w-2xl">
+    <AppLayout title="MUSE CORE" rightSlot={<span>{t("tuner.rightSlot")}</span>} containerMaxWidthClassName="max-w-2xl">
       <div className="text-center mb-6">
         <h2 className="text-3xl font-light mb-4 text-white tracking-tight">{t("tuner.title")}</h2>
       </div>
@@ -326,7 +326,21 @@ export default function TunerPage() {
         </div>
       </div>
 
-      <ContentPlaceholder title={t("tuner.contentTitle")} />
+      <ContentPlaceholder title={t("tuner.contentTitle")}>
+        <div className="space-y-4">
+          {tArray("tuner.guideItems").map((item, i) =>
+            i % 2 === 1 ? (
+              <h3 key={i} className={`text-base font-semibold text-[#e5e5e5] mb-1 ${i === 1 ? 'mt-4' : 'mt-6'}`}>
+                {item}
+              </h3>
+            ) : (
+              <p key={i} className="text-sm leading-relaxed text-[#9ca3af]">
+                {item}
+              </p>
+            )
+          )}
+        </div>
+      </ContentPlaceholder>
     </AppLayout>
   );
 }

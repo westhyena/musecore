@@ -260,7 +260,21 @@ export default function OfficialAudioPage() {
         </div>
       </div>
 
-      <ContentPlaceholder title={t("officialAudio.contentTitle")} />
+      <ContentPlaceholder title={t("officialAudio.contentTitle")}>
+        <div className="space-y-4">
+          {tArray("officialAudio.contentGuideItems").map((item, i) =>
+            i % 2 === 1 ? (
+              <h3 key={i} className={`text-base font-semibold text-[#e5e5e5] mb-1 ${i === 1 ? 'mt-4' : 'mt-6'}`}>
+                {item}
+              </h3>
+            ) : (
+              <p key={i} className="text-sm leading-relaxed text-[#9ca3af]">
+                {item}
+              </p>
+            )
+          )}
+        </div>
+      </ContentPlaceholder>
     </AppLayout>
   );
 }

@@ -11,8 +11,8 @@ export default function TopBar({ rightSlot, maxWidthClassName = 'max-w-5xl' }: T
   const { locale, setLocale } = useI18n();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0c]/90 py-4 pr-14 backdrop-blur-xl">
-      <div className={`${maxWidthClassName} mx-auto flex justify-end px-4`}>
+    <header className="sticky top-0 z-50 h-14 flex items-center border-b border-white/10 bg-[#0a0a0c]/90 pr-14 backdrop-blur-xl">
+      <div className={`${maxWidthClassName} mx-auto flex min-h-full items-center justify-end px-4`}>
         <div className="text-sm text-[#9ca3af]">{rightSlot}</div>
       </div>
       <div className="absolute right-4 top-1/2 -translate-y-1/2">
