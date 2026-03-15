@@ -1,13 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Music, Image as ImageIcon, Wand2, Video, Download, X } from "lucide-react";
 import AppLayout from '@/components/layout/AppLayout';
+import ContentPlaceholder from '@/components/layout/ContentPlaceholder';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function OfficialAudioPage() {
+  const { t, tArray } = useI18n();
   const [audioFiles, setAudioFiles] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [quality, setQuality] = useState("fast");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [jobs, setJobs] = useState([]); // { id, file, progress, status: 'pending'|'running'|'done'|'error', url? }
+  const [jobs, setJobs] = useState([]);
+  const [isAudioHover, setIsAudioHover] = useState(false);
+  const [isImageHover, setIsImageHover] = useState(false);
   const cancelRef = useRef(false);
 
   const imageUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile]);
@@ -50,7 +55,6 @@ export default function OfficialAudioPage() {
     try {
       const { createFFmpegInstance, generateOfficialAudioWith } = await import("./worker");
 
-      // Create a pool of ffmpeg instances
       const poolSize = Math.min(maxConcurrency, audioFiles.length);
       const pool = await Promise.all(
         new Array(poolSize).fill(0).map(() => createFFmpegInstance())
@@ -97,48 +101,76 @@ export default function OfficialAudioPage() {
     cancelRef.current = true;
   };
 
+  const DropZone = ({ onSelect, accept, multiple, label, icon: Icon, isHover, setIsHover, hasFiles, fileCount }) => (
+    <label
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+      className={`daw-glow-border flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 cursor-pointer transition-all duration-300 ${
+        isHover
+          ? "border-[#007AFF]/60 bg-[#007AFF]/5"
+          : "border-white/20 bg-white/5 hover:bg-white/8"
+      }`}
+    >
+      <Icon className={`text-4xl transition-colors ${isHover ? "text-[#007AFF]" : "text-[#9ca3af]"}`} />
+      <span className="text-sm text-[#9ca3af]">{label}</span>
+      {hasFiles && (
+        <span className="text-xs text-[#39FF14]">{t("common.filesSelected", { count: fileCount })}</span>
+      )}
+      <input
+        type="file"
+        multiple={multiple}
+        accept={accept}
+        className="hidden"
+        onChange={(e) => {
+          if (multiple) {
+            onSelect(Array.from(e.target.files || []));
+          } else {
+            onSelect(e.target.files?.[0] ?? null);
+          }
+        }}
+      />
+    </label>
+  );
+
   return (
-    <AppLayout title="MUSE CORE" rightSlot={<span>Official Audio Generator</span>}>
+    <AppLayout title="MUSE CORE" rightSlot={<span>{t("officialAudio.rightSlot")}</span>}>
       <div className="text-center mb-10">
-        <h2 className="text-4xl font-light mb-3 text-purple-100">Official Audio</h2>
-        <p className="text-purple-300">앨범 아트 1장 + 다수의 오디오를 한 번에 MP4로 변환합니다.</p>
+        <h2 className="text-4xl font-light mb-3 text-white tracking-tight">{t("officialAudio.title")}</h2>
+        <p className="text-[#9ca3af]">{t("officialAudio.subtitle")}</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 items-start">
-        <div className="md:col-span-2 bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+        <div className="md:col-span-2 daw-card p-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm text-purple-200 mb-2">오디오 파일들 (여러개 선택)</label>
-              <label className="flex flex-col items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/5 p-6 cursor-pointer hover:bg-white/10 transition-colors">
-                <Music className="text-purple-300" />
-                <span className="text-sm text-purple-300">MP3, WAV 등 (다중 선택 가능)</span>
-                <input
-                  type="file"
-                  multiple
-                  accept="audio/*"
-                  className="hidden"
-                  onChange={(e) => onSelectAudios(e.target.files)}
-                />
-              </label>
-              {!!audioFiles.length && (
-                <div className="mt-3 text-sm text-purple-200">{audioFiles.length}개의 파일 선택됨</div>
-              )}
+              <label className="block text-sm text-[#e5e5e5] mb-2">{t("officialAudio.audioFiles")}</label>
+              <DropZone
+                onSelect={onSelectAudios}
+                accept="audio/*"
+                multiple
+                label={t("officialAudio.audioLabel")}
+                icon={Music}
+                isHover={isAudioHover}
+                setIsHover={setIsAudioHover}
+                hasFiles={!!audioFiles.length}
+                fileCount={audioFiles.length}
+              />
             </div>
 
             <div>
-              <label className="block text-sm text-purple-200 mb-2">앨범 아트(이미지)</label>
-              <label className="flex flex-col items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/5 p-6 cursor-pointer hover:bg-white/10 transition-colors">
-                <ImageIcon className="text-purple-300" />
-                <span className="text-sm text-purple-300">PNG, JPG (1개)</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-                />
-              </label>
+              <label className="block text-sm text-[#e5e5e5] mb-2">{t("officialAudio.albumArt")}</label>
+              <DropZone
+                onSelect={(file) => setImageFile(file)}
+                accept="image/*"
+                label={t("officialAudio.imageLabel")}
+                icon={ImageIcon}
+                isHover={isImageHover}
+                setIsHover={setIsImageHover}
+                hasFiles={!!imageFile}
+                fileCount={imageFile ? 1 : 0}
+              />
               {imageFile && (
-                <div className="mt-3 text-sm text-purple-200 truncate">{imageFile.name}</div>
+                <div className="mt-3 text-sm text-[#9ca3af] truncate">{imageFile.name}</div>
               )}
               {imageUrl && (
                 <img src={imageUrl} alt="preview" className="mt-4 w-full rounded-lg border border-white/10" />
@@ -146,66 +178,69 @@ export default function OfficialAudioPage() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 mt-6">
-            <div className="md:col-span-1">
-              <label className="block text-sm text-purple-200 mb-2">품질</label>
-              <select
-                value={quality}
-                onChange={(e) => setQuality(e.target.value)}
-                className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-              >
-                <option value="fast">빠름 (2fps, 720p)</option>
-                <option value="balanced">균형 (12fps, 1080p)</option>
-                <option value="high">고화질 (24fps, 1080p)</option>
-              </select>
+          {/* Rack-style quality control */}
+          <div className="mt-6 p-4 rounded-xl bg-[#111]/50 border border-white/10">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-[#39FF14] animate-pulse" />
+              <span className="text-sm font-medium text-[#e5e5e5]">{t("officialAudio.quality")}</span>
             </div>
+            <select
+              value={quality}
+              onChange={(e) => setQuality(e.target.value)}
+              className="w-full rounded-lg bg-white/10 border border-white/20 px-3 py-2.5 text-white focus:border-[#007AFF] focus:ring-1 focus:ring-[#007AFF]/50"
+            >
+              <option value="fast">{t("officialAudio.qualityFast")}</option>
+              <option value="balanced">{t("officialAudio.qualityBalanced")}</option>
+              <option value="high">{t("officialAudio.qualityHigh")}</option>
+            </select>
           </div>
 
           <div className="mt-6 flex gap-3">
             <button
               disabled={disabled}
               onClick={startBatch}
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-white/20 transition-colors ${disabled ? "bg-white/10 text-purple-300" : "bg-purple-500 hover:bg-purple-400 text-white"}`}
+              className={`daw-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${disabled ? "opacity-50" : ""}`}
             >
               <Wand2 size={18} />
-              모두 생성 (병렬)
+              {t("officialAudio.generateAll")}
             </button>
 
             <button
               disabled={!isGenerating}
-              onClick={() => { cancelRef.current = true; }}
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-white/20 transition-colors ${!isGenerating ? "bg-white/10 text-purple-300" : "bg-white/10 hover:bg-white/20 text-white"}`}
+              onClick={cancelBatch}
+              className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 border border-white/20 bg-white/5 text-[#9ca3af] hover:bg-white/10 transition-colors disabled:opacity-50"
             >
               <X size={18} />
-              취소
+              {t("common.cancel")}
             </button>
           </div>
 
-          {/* Jobs */}
           {!!jobs.length && (
             <div className="mt-8 space-y-3">
               {jobs.map((j) => (
-                <div key={j.id} className="rounded-lg border border-white/10 bg-white/5 p-3">
+                <div key={j.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="flex items-center justify-between text-sm">
-                    <div className="truncate">{j.file.name}</div>
-                    <div className="text-purple-300">
-                      {j.status === 'pending' && '대기 중'}
-                      {j.status === 'running' && `${formatPct(j.progress)} 인코딩 중`}
-                      {j.status === 'done' && '완료'}
-                      {j.status === 'error' && '오류'}
+                    <div className="truncate text-[#e5e5e5]">{j.file.name}</div>
+                    <div className="text-[#9ca3af]">
+                      {j.status === 'pending' && t("officialAudio.statusPending")}
+                      {j.status === 'running' && t("officialAudio.statusEncoding", { pct: formatPct(j.progress) })}
+                      {j.status === 'done' && t("officialAudio.statusDone")}
+                      {j.status === 'error' && t("officialAudio.statusError")}
                     </div>
                   </div>
                   <div className="mt-2 w-full h-2 bg-white/10 rounded overflow-hidden">
-                    <div className={`h-full ${j.status === 'error' ? 'bg-red-400' : 'bg-purple-500'}`} style={{ width: j.status === 'done' ? '100%' : `${Math.round((j.progress || 0) * 100)}%` }} />
+                    <div
+                      className={`h-full transition-all duration-300 ${j.status === 'error' ? 'bg-[#ef4444]' : 'bg-[#007AFF]'}`}
+                      style={{ width: j.status === 'done' ? '100%' : `${Math.round((j.progress || 0) * 100)}%` }}
+                    />
                   </div>
                   {j.url && (
-                    <div className="mt-2 text-xs">
-                      <a href={j.url} target="_blank" rel="noreferrer" className="text-purple-300 hover:text-purple-200 inline-flex items-center gap-1">
-                        <Video size={14} /> 미리보기
+                    <div className="mt-2 text-xs flex gap-4">
+                      <a href={j.url} target="_blank" rel="noreferrer" className="text-[#007AFF] hover:text-[#39FF14] inline-flex items-center gap-1">
+                        <Video size={14} /> {t("common.preview")}
                       </a>
-                      <span className="mx-2 text-purple-400">·</span>
-                      <a href={j.url} download={`${baseName(j.file.name)}.mp4`} className="text-purple-300 hover:text-purple-200 inline-flex items-center gap-1">
-                        <Download size={14} /> 다운로드
+                      <a href={j.url} download={`${baseName(j.file.name)}.mp4`} className="text-[#007AFF] hover:text-[#39FF14] inline-flex items-center gap-1">
+                        <Download size={14} /> {t("common.download")}
                       </a>
                     </div>
                   )}
@@ -215,15 +250,17 @@ export default function OfficialAudioPage() {
           )}
         </div>
 
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-          <h3 className="text-lg text-purple-100 mb-4">가이드</h3>
-          <ul className="space-y-2 text-sm text-purple-200 list-disc list-inside">
-            <li>병렬 실행 개수는 디바이스 성능에 따라 자동 조절됩니다</li>
-            <li>메모리 부족 시 브라우저가 탭을 강제 종료할 수 있습니다</li>
-            <li>MP4 파일명은 오디오 파일명으로 자동 저장됩니다</li>
+        <div className="daw-card p-6">
+          <h3 className="text-lg text-[#e5e5e5] mb-4 font-medium">{t("common.guide")}</h3>
+          <ul className="space-y-2 text-sm text-[#9ca3af] list-disc list-inside">
+            {tArray("officialAudio.guideItems").map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
           </ul>
         </div>
       </div>
+
+      <ContentPlaceholder title={t("officialAudio.contentTitle")} />
     </AppLayout>
   );
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useI18n } from '@/i18n/I18nContext';
 
 type TopBarProps = {
   title?: string;
@@ -6,18 +7,35 @@ type TopBarProps = {
   maxWidthClassName?: string;
 };
 
-export default function TopBar({ title = 'MUSE CORE', rightSlot, maxWidthClassName = 'max-w-5xl' }: TopBarProps) {
+export default function TopBar({ rightSlot, maxWidthClassName = 'max-w-5xl' }: TopBarProps) {
+  const { locale, setLocale } = useI18n();
+
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm border-b border-white/20 px-4 py-4 sticky top-0 z-50">
-      <div className={`${maxWidthClassName} mx-auto`}>
-        <div className="flex items-center justify-between">
-          <a href="/" className="text-purple-200 hover:text-white transition-colors">
-            {title}
-          </a>
-          <div className="text-sm text-purple-300">{rightSlot}</div>
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0c]/90 py-4 pr-14 backdrop-blur-xl">
+      <div className={`${maxWidthClassName} mx-auto flex justify-end px-4`}>
+        <div className="text-sm text-[#9ca3af]">{rightSlot}</div>
+      </div>
+      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+        <div className="flex rounded-lg border border-white/10 bg-white/5 p-0.5">
+          <button
+            onClick={() => setLocale('ko')}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              locale === 'ko' ? 'bg-[#007AFF] text-white' : 'text-[#9ca3af] hover:text-white'
+            }`}
+          >
+            KO
+          </button>
+          <button
+            onClick={() => setLocale('en')}
+            className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              locale === 'en' ? 'bg-[#007AFF] text-white' : 'text-[#9ca3af] hover:text-white'
+            }`}
+          >
+            EN
+          </button>
         </div>
       </div>
-    </div>
+    </header>
   );
 }
 

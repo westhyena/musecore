@@ -3,14 +3,15 @@ import {
   Play,
   Pause,
   Volume2,
-  Music,
-  Hand,
   Settings,
-  ChevronDown,
+  Hand,
 } from "lucide-react";
 import AppLayout from '@/components/layout/AppLayout';
+import ContentPlaceholder from '@/components/layout/ContentPlaceholder';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function MetronomePage() {
+  const { t } = useI18n();
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
   const [volume, setVolume] = useState(0.5);
@@ -23,31 +24,30 @@ export default function MetronomePage() {
   const intervalRef = useRef(null);
   const audioContextRef = useRef(null);
 
-  // Time signature options
   const timeSignatures = {
-    "4/4": { beats: 4, name: "Common Time" },
-    "3/4": { beats: 3, name: "Waltz" },
-    "2/4": { beats: 2, name: "March" },
-    "6/8": { beats: 6, name: "Compound Duple" },
-    "5/4": { beats: 5, name: "Irregular" },
+    "4/4": { beats: 4, key: "commonTime" },
+    "3/4": { beats: 3, key: "waltz" },
+    "2/4": { beats: 2, key: "march" },
+    "6/8": { beats: 6, key: "compoundDuple" },
+    "5/4": { beats: 5, key: "irregular" },
   };
 
-  // Get current time signature info
   const getCurrentTimeSignature = () => {
     if (showCustomize) {
       return {
         beats: customNumerator,
-        name: `Custom ${customNumerator}/${customDenominator}`,
+        name: t("metronome.timeSignature.custom", { num: customNumerator, denom: customDenominator }),
         signature: `${customNumerator}/${customDenominator}`,
       };
     }
+    const sig = timeSignatures[timeSignature];
     return {
-      ...timeSignatures[timeSignature],
+      beats: sig.beats,
+      name: t(`metronome.timeSignature.${sig.key}`),
       signature: timeSignature,
     };
   };
 
-  // Initialize audio context
   useEffect(() => {
     audioContextRef.current = new (
       window.AudioContext || window.webkitAudioContext
@@ -69,7 +69,6 @@ export default function MetronomePage() {
       oscillator.connect(gainNode);
       gainNode.connect(audioContextRef.current.destination);
 
-      // Higher pitch for accented beats (first beat of measure)
       const frequency = isAccent ? 1000 : 800;
       oscillator.frequency.setValueAtTime(
         frequency,
@@ -106,11 +105,9 @@ export default function MetronomePage() {
 
     const interval = 60000 / bpm;
 
-    // Reset to first beat and play immediately
     setCurrentBeat(0);
-    playClick(true); // First beat is always accented
+    playClick(true);
 
-    // Start interval for subsequent beats
     intervalRef.current = setInterval(() => {
       setCurrentBeat((prevBeat) => {
         const beatsPerMeasure = getCurrentTimeSignature().beats;
@@ -138,7 +135,7 @@ export default function MetronomePage() {
   const handleTapTempo = useCallback(() => {
     const now = Date.now();
     setTapTimes((prev) => {
-      const newTimes = [...prev, now].slice(-4); // Keep last 4 taps
+      const newTimes = [...prev, now].slice(-4);
 
       if (newTimes.length >= 2) {
         const intervals = [];
@@ -150,7 +147,6 @@ export default function MetronomePage() {
           intervals.reduce((a, b) => a + b) / intervals.length;
         const newBpm = Math.round(60000 / avgInterval);
 
-        // Only update if BPM is within reasonable range
         if (newBpm >= 40 && newBpm <= 200) {
           setBpm(newBpm);
         }
@@ -190,69 +186,91 @@ export default function MetronomePage() {
     };
   }, [stopMetronome]);
 
-  const renderBeatIndicators = () => {
-    const currentSig = getCurrentTimeSignature();
-    const beatsPerMeasure = currentSig.beats;
-    const indicators = [];
-
-    for (let i = 0; i < beatsPerMeasure; i++) {
-      indicators.push(
-        <div
-          key={i}
-          className={`w-8 h-8 rounded-full border-2 transition-all duration-150 ${
-            currentBeat === i && isPlaying
-              ? i === 0
-                ? "bg-yellow-400 border-yellow-400 shadow-lg scale-110" // Accent beat
-                : "bg-purple-400 border-purple-400 shadow-lg scale-110"
-              : "border-white/40 bg-white/10"
-          }`}
-        />,
-      );
-    }
-
-    return indicators;
-  };
+  const currentSig = getCurrentTimeSignature();
+  const beatsPerMeasure = currentSig.beats;
 
   return (
     <AppLayout title="MUSE CORE" containerMaxWidthClassName="max-w-2xl">
-      {/* Page Title */}
       <div className="text-center mb-6">
-        <h2 className="text-3xl font-light mb-4 text-purple-100">
-          Metronome
+        <h2 className="text-3xl font-light mb-4 text-white tracking-tight">
+          {t("metronome.title")}
         </h2>
       </div>
 
-      {/* Metronome Section */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-        {/* BPM Display & Beat Visualization Combined */}
+      <div className="daw-card p-6">
+        {/* LED/VFD BPM Display */}
         <div className="text-center mb-6">
-          <div className="text-6xl font-light mb-2 text-white">{bpm}</div>
-          <div className="text-purple-300 text-lg mb-4">BPM</div>
+          <div
+            className="daw-led-display text-7xl font-light mb-2 font-mono"
+            style={{ letterSpacing: '0.05em' }}
+          >
+            {bpm}
+          </div>
+          <div className="text-[#9ca3af] text-lg mb-6 tracking-tight">BPM</div>
 
-          {/* Beat Visualization */}
-          <div className="flex justify-center gap-2 mb-2">
-            {renderBeatIndicators()}
+          {/* Circular Ring Beat Visualization */}
+          <div className="flex justify-center mb-4">
+            <div className="relative w-48 h-48">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                {(() => {
+                  const r = 42;
+                  const circumference = 2 * Math.PI * r;
+                  const segmentLength = circumference / beatsPerMeasure;
+                  return Array.from({ length: beatsPerMeasure }).map((_, i) => {
+                    const isActive = currentBeat === i && isPlaying;
+                    const isDownbeat = i === 0;
+                    return (
+                      <circle
+                        key={i}
+                        cx="50"
+                        cy="50"
+                        r={r}
+                        fill="none"
+                        stroke={isActive ? "#39FF14" : "rgba(255,255,255,0.2)"}
+                        strokeWidth={isActive ? (isDownbeat ? 8 : 6) : 3}
+                        strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+                        strokeDashoffset={-i * segmentLength}
+                        className="transition-all duration-150"
+                        style={{
+                          filter: isActive ? `drop-shadow(0 0 ${isDownbeat ? '12' : '8'}px rgba(57,255,20,${isDownbeat ? '0.9' : '0.5'}))` : 'none',
+                        }}
+                      />
+                    );
+                  });
+                })()}
+              </svg>
+              {/* Center play/pause */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <button
+                  onClick={() => (isPlaying ? stopMetronome() : startMetronome())}
+                  className="w-16 h-16 rounded-full bg-[#007AFF]/20 border border-[#007AFF]/50 flex items-center justify-center hover:bg-[#007AFF]/30 transition-colors"
+                >
+                  {isPlaying ? (
+                    <Pause size={28} className="text-[#007AFF]" />
+                  ) : (
+                    <Play size={28} className="text-[#007AFF] ml-1" />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-purple-400">
-            {getCurrentTimeSignature().name}
-          </div>
+          <div className="text-sm text-[#9ca3af]">{currentSig.name}</div>
         </div>
 
         {/* Time Signature Controls */}
         <div className="mb-6">
-          {/* Preset Time Signatures */}
           <div className="flex flex-wrap gap-2 justify-center mb-4">
-            {Object.entries(timeSignatures).map(([sig, info]) => (
+            {Object.entries(timeSignatures).map(([sig]) => (
               <button
                 key={sig}
                 onClick={() => {
                   setTimeSignature(sig);
                   setShowCustomize(false);
                 }}
-                className={`px-3 py-1 rounded-lg text-sm transition-colors duration-200 ${
+                className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
                   timeSignature === sig && !showCustomize
-                    ? "bg-purple-600 text-white"
-                    : "bg-white/20 text-purple-300 hover:bg-white/30"
+                    ? "bg-[#007AFF] text-white shadow-[0_0_12px_rgba(0,122,255,0.4)]"
+                    : "bg-white/10 text-[#9ca3af] hover:bg-white/20 border border-white/10"
                 }`}
               >
                 {sig}
@@ -260,33 +278,31 @@ export default function MetronomePage() {
             ))}
           </div>
 
-          {/* Customize Button */}
           <div className="text-center mb-4">
             <button
               onClick={() => setShowCustomize(!showCustomize)}
-              className={`px-4 py-2 rounded-lg text-sm transition-colors duration-200 flex items-center gap-2 mx-auto ${
+              className={`px-4 py-2 rounded-lg text-sm transition-all duration-200 flex items-center gap-2 mx-auto ${
                 showCustomize
-                  ? "bg-purple-600 text-white"
-                  : "bg-white/20 text-purple-300 hover:bg-white/30"
+                  ? "bg-[#007AFF] text-white"
+                  : "bg-white/10 text-[#9ca3af] hover:bg-white/20 border border-white/10"
               }`}
             >
               <Settings size={14} />
-              {showCustomize ? "Hide Custom" : "Customize"}
+              {showCustomize ? t("metronome.hideCustom") : t("metronome.customize")}
             </button>
           </div>
 
-          {/* Custom Input - Only show when customize is active */}
           {showCustomize && (
             <div className="mb-4">
               <div className="flex items-center justify-center gap-3 mb-3">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-purple-300">Beats:</label>
+                  <label className="text-sm text-[#9ca3af]">{t("metronome.beats")}:</label>
                   <select
                     value={customNumerator}
                     onChange={(e) =>
                       setCustomNumerator(parseInt(e.target.value))
                     }
-                    className="px-2 py-1 bg-white/20 border border-white/30 rounded text-white focus:outline-none focus:border-purple-400"
+                    className="px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:border-[#007AFF]"
                   >
                     {Array.from({ length: 16 }, (_, i) => i + 1).map((num) => (
                       <option key={num} value={num}>
@@ -295,15 +311,15 @@ export default function MetronomePage() {
                     ))}
                   </select>
                 </div>
-                <div className="text-purple-300">/</div>
+                <div className="text-[#9ca3af]">/</div>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-purple-300">Note:</label>
+                  <label className="text-sm text-[#9ca3af]">{t("metronome.note")}:</label>
                   <select
                     value={customDenominator}
                     onChange={(e) =>
                       setCustomDenominator(parseInt(e.target.value))
                     }
-                    className="px-2 py-1 bg-white/20 border border-white/30 rounded text-white focus:outline-none focus:border-purple-400"
+                    className="px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:border-[#007AFF]"
                   >
                     <option value={2}>2</option>
                     <option value={4}>4</option>
@@ -311,9 +327,6 @@ export default function MetronomePage() {
                     <option value={16}>16</option>
                   </select>
                 </div>
-              </div>
-              <div className="text-center text-xs text-purple-400">
-                Current: {customNumerator}/{customDenominator}
               </div>
             </div>
           )}
@@ -325,38 +338,38 @@ export default function MetronomePage() {
             max="200"
             value={bpm}
             onChange={(e) => setBpm(parseInt(e.target.value))}
-            className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer mb-2"
+            className="daw-slider w-full mb-2"
             style={{
-              background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.2) ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.2) 100%)`,
+              background: `linear-gradient(to right, #007AFF 0%, #007AFF ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.1) ${((bpm - 40) / 160) * 100}%, rgba(255,255,255,0.1) 100%)`,
             }}
           />
-          <div className="flex justify-between text-xs text-purple-300 mb-4">
+          <div className="flex justify-between text-xs text-[#9ca3af] mb-4">
             <span>40</span>
             <span className="text-sm">
-              {bpm < 60 && "Largo"}
-              {bpm >= 60 && bpm < 72 && "Adagio"}
-              {bpm >= 72 && bpm < 108 && "Andante"}
-              {bpm >= 108 && bpm < 132 && "Moderato"}
-              {bpm >= 132 && bpm < 168 && "Allegro"}
-              {bpm >= 168 && "Presto"}
+              {bpm < 60 && t("metronome.tempo.largo")}
+              {bpm >= 60 && bpm < 72 && t("metronome.tempo.adagio")}
+              {bpm >= 72 && bpm < 108 && t("metronome.tempo.andante")}
+              {bpm >= 108 && bpm < 132 && t("metronome.tempo.moderato")}
+              {bpm >= 132 && bpm < 168 && t("metronome.tempo.allegro")}
+              {bpm >= 168 && t("metronome.tempo.presto")}
             </span>
             <span>200</span>
           </div>
         </div>
 
-        {/* Tap Tempo & Volume Combined */}
-        <div className="">
+        {/* Tap Tempo & Volume */}
+        <div>
           <div className="flex gap-3 mb-3">
             <button
               onClick={handleTapTempo}
-              className="flex-1 bg-white/20 hover:bg-white/30 transition-colors duration-200 rounded-lg py-3 flex items-center justify-center gap-2 text-sm font-medium text-purple-200 hover:text-white"
+              className="flex-1 bg-white/10 hover:bg-white/20 border border-white/10 transition-colors duration-200 rounded-lg py-3 flex items-center justify-center gap-2 text-sm font-medium text-[#e5e5e5]"
             >
               <Hand size={18} />
-              Tap Tempo
+              {t("metronome.tapTempo")}
             </button>
 
-            <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-2">
-              <Volume2 size={18} className="text-purple-300" />
+            <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2 border border-white/10">
+              <Volume2 size={18} className="text-[#9ca3af]" />
               <input
                 type="range"
                 min="0"
@@ -364,21 +377,23 @@ export default function MetronomePage() {
                 step="0.1"
                 value={volume}
                 onChange={(e) => setVolume(parseFloat(e.target.value))}
-                className="w-16 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                className="daw-slider w-16"
                 style={{
-                  background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%, rgba(255,255,255,0.2) 100%)`,
+                  background: `linear-gradient(to right, #007AFF 0%, #007AFF ${volume * 100}%, rgba(255,255,255,0.1) ${volume * 100}%, rgba(255,255,255,0.1) 100%)`,
                 }}
               />
             </div>
           </div>
 
           {tapTimes.length > 0 && (
-            <div className="text-center text-xs text-purple-400">
-              Tapped {tapTimes.length} time{tapTimes.length > 1 ? "s" : ""}
+            <div className="text-center text-xs text-[#9ca3af]">
+              {t("metronome.tapped", { count: tapTimes.length })}
             </div>
           )}
         </div>
       </div>
+
+      <ContentPlaceholder title={t("metronome.contentTitle")} />
     </AppLayout>
   );
 }

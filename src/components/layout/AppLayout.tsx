@@ -1,5 +1,7 @@
 import React from 'react';
 import TopBar from './TopBar';
+import Footer from './Footer';
+import Sidebar from './Sidebar';
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -17,10 +19,14 @@ export default function AppLayout({
   containerMaxWidthClassName = 'max-w-5xl',
 }: AppLayoutProps) {
   return (
-    <div className="flex-1 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-y-auto">
-      <TopBar title={title} rightSlot={rightSlot} maxWidthClassName={maxWidthClassName ?? containerMaxWidthClassName} />
-      <div className={`container mx-auto px-4 py-8 ${containerMaxWidthClassName}`}>
-        {children}
+    <div className="flex min-h-screen bg-[#0a0a0c] text-white">
+      <Sidebar />
+      <div className="flex flex-1 flex-col min-w-0 overflow-x-hidden">
+        <TopBar title={title} rightSlot={rightSlot} maxWidthClassName={maxWidthClassName ?? containerMaxWidthClassName} />
+        <main className={`container mx-auto flex-1 px-4 py-8 pb-20 md:pb-8 overflow-y-auto ${containerMaxWidthClassName}`}>
+          {children}
+        </main>
+        <Footer />
       </div>
     </div>
   );

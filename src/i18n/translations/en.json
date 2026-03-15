@@ -1,0 +1,144 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "download": "Download",
+    "preview": "Preview",
+    "guide": "Guide",
+    "selected": "selected",
+    "filesSelected": "{count} selected"
+  },
+  "nav": {
+    "home": "Home",
+    "metronome": "Metronome",
+    "tuner": "Tuner",
+    "officialAudio": "Official Audio",
+    "mastering": "Mastering",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu"
+  },
+  "footer": {
+    "copyright": "© {year} MUSE CORE. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "aboutUs": "About Us",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Music Tools",
+    "subtitle": "Professional metronome and tuner for musicians",
+    "chooseTool": "Choose your tool to get started",
+    "metronome": {
+      "title": "Metronome",
+      "desc": "Keep perfect time with adjustable BPM and volume controls",
+      "features": ["40-200 BPM", "Volume Control", "Tempo Guide"]
+    },
+    "tuner": {
+      "title": "Tuner",
+      "desc": "Tune your instrument with real-time pitch detection",
+      "features": ["Note Detection", "Cents Display", "Visual Guide"]
+    },
+    "officialAudio": {
+      "title": "Official Audio",
+      "desc": "Combine your album art and audio into a YouTube-ready MP4",
+      "features": ["Image + Audio → MP4", "H.264 + AAC", "1080p"]
+    },
+    "mastering": {
+      "title": "Mastering",
+      "desc": "High-pass, compressor, loudness, limiter chain",
+      "features": ["WAV/M4A output", "Presets", "Parallel processing"]
+    }
+  },
+  "metronome": {
+    "title": "Metronome",
+    "tapTempo": "Tap Tempo",
+    "customize": "Customize",
+    "hideCustom": "Hide Custom",
+    "beats": "Beats",
+    "note": "Note",
+    "tapped": "Tapped {count} time(s)",
+    "tapped_one": "Tapped 1 time",
+    "tempo": {
+      "largo": "Largo",
+      "adagio": "Adagio",
+      "andante": "Andante",
+      "moderato": "Moderato",
+      "allegro": "Allegro",
+      "presto": "Presto"
+    },
+    "timeSignature": {
+      "commonTime": "Common Time",
+      "waltz": "Waltz",
+      "march": "March",
+      "compoundDuple": "Compound Duple",
+      "irregular": "Irregular",
+      "custom": "Custom {num}/{denom}"
+    },
+    "contentTitle": "Metronome Guide"
+  },
+  "tuner": {
+    "title": "Tuner",
+    "noSignal": "No signal detected",
+    "inTune": "✓ In Tune",
+    "close": "~ Close",
+    "outOfTune": "✗ Out of Tune",
+    "cents": "Cents",
+    "startTuner": "Start Tuner",
+    "stopListening": "Stop Listening",
+    "contentTitle": "Tuner Guide"
+  },
+  "officialAudio": {
+    "title": "Official Audio",
+    "subtitle": "Convert album art + multiple audio files to MP4 at once.",
+    "audioFiles": "Audio files (multiple select)",
+    "audioLabel": "MP3, WAV, etc. (multiple select)",
+    "albumArt": "Album art (image)",
+    "imageLabel": "PNG, JPG (1 file)",
+    "quality": "Quality settings",
+    "qualityFast": "Fast (2fps, 720p)",
+    "qualityBalanced": "Balanced (12fps, 1080p)",
+    "qualityHigh": "High quality (24fps, 1080p)",
+    "generateAll": "Generate all (parallel)",
+    "guideItems": [
+      "Parallel count auto-adjusts by device performance.",
+      "Browser may force-close tab if memory is low.",
+      "MP4 filename uses audio filename."
+    ],
+    "statusPending": "Pending",
+    "statusEncoding": "{pct} encoding",
+    "statusDone": "Done",
+    "statusError": "Error",
+    "rightSlot": "Official Audio Generator",
+    "contentTitle": "Official Audio Guide"
+  },
+  "mastering": {
+    "title": "Mastering",
+    "subtitle": "Apply simple high-pass/comp/loudness/limiter chain.",
+    "audioFiles": "Audio files (multiple select)",
+    "audioLabel": "MP3, WAV, etc. (multiple select)",
+    "preset": "Preset",
+    "outputFormat": "Output format",
+    "presetStreaming": "Streaming (-14 LUFS)",
+    "presetLoud": "Loud (-9 LUFS)",
+    "presetPodcast": "Podcast (-16 LUFS)",
+    "presetStudio": "Studio (WAV)",
+    "formatWav": "WAV (pcm_s16le)",
+    "formatM4a": "M4A (AAC)",
+    "masterAll": "Master all (parallel)",
+    "statusPending": "Pending",
+    "statusProcessing": "{pct} processing",
+    "statusDone": "Done",
+    "statusError": "Error",
+    "guideItems": [
+      "Presets differ in loudness/limiter settings.",
+      "Large files may fail due to browser memory limits.",
+      "Speed depends on device and file length."
+    ],
+    "rightSlot": "Mastering (ffmpeg.wasm)",
+    "contentTitle": "Mastering Guide"
+  },
+  "contentPlaceholder": {
+    "defaultTitle": "Guide & Tips",
+    "defaultText1": "This area can hold usage tips or guide content. Sufficient text helps UX and SEO.",
+    "defaultText2": "E.g. metronome: beat practice, tempo usage, tap tempo. Tuner: instrument tuning, A440 standard."
+  }
+}

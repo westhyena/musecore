@@ -1,0 +1,144 @@
+{
+  "common": {
+    "cancel": "취소",
+    "download": "다운로드",
+    "preview": "미리보기",
+    "guide": "가이드",
+    "selected": "선택됨",
+    "filesSelected": "{count}개 선택됨"
+  },
+  "nav": {
+    "home": "홈",
+    "metronome": "메트로놈",
+    "tuner": "튜너",
+    "officialAudio": "Official Audio",
+    "mastering": "마스터링",
+    "menuOpen": "메뉴 열기",
+    "menuClose": "메뉴 닫기"
+  },
+  "footer": {
+    "copyright": "© {year} MUSE CORE. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "aboutUs": "About Us",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Music Tools",
+    "subtitle": "Professional metronome and tuner for musicians",
+    "chooseTool": "Choose your tool to get started",
+    "metronome": {
+      "title": "Metronome",
+      "desc": "Keep perfect time with adjustable BPM and volume controls",
+      "features": ["40-200 BPM", "Volume Control", "Tempo Guide"]
+    },
+    "tuner": {
+      "title": "Tuner",
+      "desc": "Tune your instrument with real-time pitch detection",
+      "features": ["Note Detection", "Cents Display", "Visual Guide"]
+    },
+    "officialAudio": {
+      "title": "Official Audio",
+      "desc": "Combine your album art and audio into a YouTube-ready MP4",
+      "features": ["Image + Audio → MP4", "H.264 + AAC", "1080p"]
+    },
+    "mastering": {
+      "title": "Mastering",
+      "desc": "High-pass, compressor, loudness, limiter chain",
+      "features": ["WAV/M4A 출력", "프리셋", "병렬 처리"]
+    }
+  },
+  "metronome": {
+    "title": "Metronome",
+    "tapTempo": "Tap Tempo",
+    "customize": "Customize",
+    "hideCustom": "Hide Custom",
+    "beats": "Beats",
+    "note": "Note",
+    "tapped": "Tapped {count} time(s)",
+    "tapped_one": "1회 탭됨",
+    "tempo": {
+      "largo": "Largo",
+      "adagio": "Adagio",
+      "andante": "Andante",
+      "moderato": "Moderato",
+      "allegro": "Allegro",
+      "presto": "Presto"
+    },
+    "timeSignature": {
+      "commonTime": "Common Time",
+      "waltz": "Waltz",
+      "march": "March",
+      "compoundDuple": "Compound Duple",
+      "irregular": "Irregular",
+      "custom": "Custom {num}/{denom}"
+    },
+    "contentTitle": "메트로놈 활용 가이드"
+  },
+  "tuner": {
+    "title": "Tuner",
+    "noSignal": "No signal detected",
+    "inTune": "✓ In Tune",
+    "close": "~ Close",
+    "outOfTune": "✗ Out of Tune",
+    "cents": "Cents",
+    "startTuner": "Start Tuner",
+    "stopListening": "Stop Listening",
+    "contentTitle": "튜너 활용 가이드"
+  },
+  "officialAudio": {
+    "title": "Official Audio",
+    "subtitle": "앨범 아트 1장 + 다수의 오디오를 한 번에 MP4로 변환합니다.",
+    "audioFiles": "오디오 파일들 (여러개 선택)",
+    "audioLabel": "MP3, WAV 등 (다중 선택 가능)",
+    "albumArt": "앨범 아트(이미지)",
+    "imageLabel": "PNG, JPG (1개)",
+    "quality": "품질 설정",
+    "qualityFast": "빠름 (2fps, 720p)",
+    "qualityBalanced": "균형 (12fps, 1080p)",
+    "qualityHigh": "고화질 (24fps, 1080p)",
+    "generateAll": "모두 생성 (병렬)",
+    "guideItems": [
+      "병렬 실행 개수는 디바이스 성능에 따라 자동 조절됩니다",
+      "메모리 부족 시 브라우저가 탭을 강제 종료할 수 있습니다",
+      "MP4 파일명은 오디오 파일명으로 자동 저장됩니다"
+    ],
+    "statusPending": "대기 중",
+    "statusEncoding": "{pct} 인코딩 중",
+    "statusDone": "완료",
+    "statusError": "오류",
+    "rightSlot": "Official Audio Generator",
+    "contentTitle": "Official Audio 활용 가이드"
+  },
+  "mastering": {
+    "title": "Mastering",
+    "subtitle": "간단한 하이패스/컴프/라우드니스/리미터 체인을 적용합니다.",
+    "audioFiles": "오디오 파일들 (여러개 선택)",
+    "audioLabel": "MP3, WAV 등 (다중 선택 가능)",
+    "preset": "프리셋",
+    "outputFormat": "출력 포맷",
+    "presetStreaming": "Streaming (-14 LUFS)",
+    "presetLoud": "Loud (-9 LUFS)",
+    "presetPodcast": "Podcast (-16 LUFS)",
+    "presetStudio": "Studio (WAV)",
+    "formatWav": "WAV (pcm_s16le)",
+    "formatM4a": "M4A (AAC)",
+    "masterAll": "모두 마스터링 (병렬)",
+    "statusPending": "대기 중",
+    "statusProcessing": "{pct} 처리 중",
+    "statusDone": "완료",
+    "statusError": "오류",
+    "guideItems": [
+      "프리셋은 라우드니스/리미터 세팅이 다릅니다.",
+      "브라우저 메모리 한계로 대용량 파일은 실패할 수 있습니다.",
+      "처리 속도는 기기 성능과 파일 길이에 비례합니다."
+    ],
+    "rightSlot": "Mastering (ffmpeg.wasm)",
+    "contentTitle": "마스터링 가이드"
+  },
+  "contentPlaceholder": {
+    "defaultTitle": "가이드 및 활용법",
+    "defaultText1": "이 영역에는 해당 도구의 사용법, 팁, 또는 관련 가이드 콘텐츠를 채워 넣을 수 있습니다. 충분한 텍스트 콘텐츠는 사용자 경험과 검색 최적화에 도움이 됩니다.",
+    "defaultText2": "예를 들어, 메트로놈 페이지에서는 박자 연습 방법, 다양한 템포의 활용, 탭 템포 사용법 등을 설명할 수 있습니다. 튜너 페이지에서는 악기 조율 방법, 표준 피치(A440)에 대한 설명 등을 추가할 수 있습니다."
+  }
+}

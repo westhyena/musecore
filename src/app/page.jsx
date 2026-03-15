@@ -1,116 +1,115 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Play, Pause, Volume2, Mic, MicOff, Music, Video, Wand2 } from "lucide-react";
+import { Play, Mic, Music, Video, Wand2 } from "lucide-react";
 import AppLayout from '@/components/layout/AppLayout';
+import { useI18n } from '@/i18n/I18nContext';
 
 export default function HomePage() {
+  const { t } = useI18n();
+
   return (
     <AppLayout title="MUSE CORE" containerMaxWidthClassName="max-w-4xl">
       <div className="text-center mb-12">
-        <h2 className="text-5xl font-light mb-6 text-purple-100">
-          Music Tools
+        <h2 className="text-5xl font-light mb-6 text-white tracking-tight">
+          {t("home.title")}
         </h2>
-        <p className="text-xl text-purple-300 mb-8">
-          Professional metronome and tuner for musicians
+        <p className="text-xl text-[#9ca3af] mb-8 tracking-tight">
+          {t("home.subtitle")}
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Metronome Card */}
-        <a href="/metronome" className="group">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+      <div className="grid md:grid-cols-2 gap-8 md:items-stretch">
+        <a href="/metronome" className="group block h-full">
+          <div className="daw-card h-full p-8 transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#007AFF]/30 flex flex-col">
             <div className="text-center">
               <div className="mb-6">
                 <Play
                   size={64}
-                  className="mx-auto text-purple-400 group-hover:text-purple-300 transition-colors"
+                  className="mx-auto text-[#007AFF] group-hover:text-[#39FF14] transition-colors"
                 />
               </div>
-              <h2 className="text-3xl font-light mb-4 text-white">
-                Metronome
+              <h2 className="text-3xl font-light mb-4 text-white tracking-tight">
+                {t("home.metronome.title")}
               </h2>
-              <p className="text-purple-300 mb-6">
-                Keep perfect time with adjustable BPM and volume controls
+              <p className="text-[#9ca3af] mb-6">
+                {t("home.metronome.desc")}
               </p>
-              <div className="flex justify-center gap-4 text-sm text-purple-400">
-                <span>• 40-200 BPM</span>
-                <span>• Volume Control</span>
-                <span>• Tempo Guide</span>
+              <div className="flex justify-center gap-4 text-sm text-[#6b7280]">
+                <span>• {t("home.metronome.features.0")}</span>
+                <span>• {t("home.metronome.features.1")}</span>
+                <span>• {t("home.metronome.features.2")}</span>
               </div>
             </div>
           </div>
         </a>
 
-        {/* Tuner Card */}
-        <a href="/tuner" className="group">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+        <a href="/tuner" className="group block h-full">
+          <div className="daw-card h-full p-8 transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#007AFF]/30 flex flex-col">
             <div className="text-center">
               <div className="mb-6">
                 <Mic
                   size={64}
-                  className="mx-auto text-purple-400 group-hover:text-purple-300 transition-colors"
+                  className="mx-auto text-[#007AFF] group-hover:text-[#39FF14] transition-colors"
                 />
               </div>
-              <h2 className="text-3xl font-light mb-4 text-white">Tuner</h2>
-              <p className="text-purple-300 mb-6">
-                Tune your instrument with real-time pitch detection
+              <h2 className="text-3xl font-light mb-4 text-white tracking-tight">
+                {t("home.tuner.title")}
+              </h2>
+              <p className="text-[#9ca3af] mb-6">
+                {t("home.tuner.desc")}
               </p>
-              <div className="flex justify-center gap-4 text-sm text-purple-400">
-                <span>• Note Detection</span>
-                <span>• Cents Display</span>
-                <span>• Visual Guide</span>
+              <div className="flex justify-center gap-4 text-sm text-[#6b7280]">
+                <span>• {t("home.tuner.features.0")}</span>
+                <span>• {t("home.tuner.features.1")}</span>
+                <span>• {t("home.tuner.features.2")}</span>
               </div>
             </div>
           </div>
         </a>
       </div>
 
-      {/* Row 2 */}
-      <div className="grid md:grid-cols-2 gap-8 mt-8">
-        {/* Official Audio Card */}
-        <a href="/official-audio" className="group">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+      <div className="grid md:grid-cols-2 gap-8 mt-8 md:items-stretch">
+        <a href="/official-audio" className="group block h-full">
+          <div className="daw-card h-full p-8 transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#007AFF]/30 flex flex-col">
             <div className="text-center">
               <div className="mb-6">
                 <Video
                   size={64}
-                  className="mx-auto text-purple-400 group-hover:text-purple-300 transition-colors"
+                  className="mx-auto text-[#007AFF] group-hover:text-[#39FF14] transition-colors"
                 />
               </div>
-              <h2 className="text-3xl font-light mb-4 text-white">
-                Official Audio
+              <h2 className="text-3xl font-light mb-4 text-white tracking-tight">
+                {t("home.officialAudio.title")}
               </h2>
-              <p className="text-purple-300 mb-6">
-                Combine your album art and audio into a YouTube-ready MP4
+              <p className="text-[#9ca3af] mb-6">
+                {t("home.officialAudio.desc")}
               </p>
-              <div className="flex justify-center gap-4 text-sm text-purple-400">
-                <span>• Image + Audio → MP4</span>
-                <span>• H.264 + AAC</span>
-                <span>• 1080p</span>
+              <div className="flex justify-center gap-4 text-sm text-[#6b7280]">
+                <span>• {t("home.officialAudio.features.0")}</span>
+                <span>• {t("home.officialAudio.features.1")}</span>
+                <span>• {t("home.officialAudio.features.2")}</span>
               </div>
             </div>
           </div>
         </a>
 
-        {/* Mastering Card */}
-        <a href="/mastering" className="group">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+        <a href="/mastering" className="group block h-full">
+          <div className="daw-card h-full p-8 transition-all duration-300 group-hover:scale-[1.02] group-hover:border-[#007AFF]/30 flex flex-col">
             <div className="text-center">
               <div className="mb-6">
                 <Wand2
                   size={64}
-                  className="mx-auto text-purple-400 group-hover:text-purple-300 transition-colors"
+                  className="mx-auto text-[#007AFF] group-hover:text-[#39FF14] transition-colors"
                 />
               </div>
-              <h2 className="text-3xl font-light mb-4 text-white">
-                Mastering
+              <h2 className="text-3xl font-light mb-4 text-white tracking-tight">
+                {t("home.mastering.title")}
               </h2>
-              <p className="text-purple-300 mb-6">
-                High-pass, compressor, loudness, limiter chain
+              <p className="text-[#9ca3af] mb-6">
+                {t("home.mastering.desc")}
               </p>
-              <div className="flex justify-center gap-4 text-sm text-purple-400">
-                <span>• WAV/M4A 출력</span>
-                <span>• 프리셋</span>
-                <span>• 병렬 처리</span>
+              <div className="flex justify-center gap-4 text-sm text-[#6b7280]">
+                <span>• {t("home.mastering.features.0")}</span>
+                <span>• {t("home.mastering.features.1")}</span>
+                <span>• {t("home.mastering.features.2")}</span>
               </div>
             </div>
           </div>
@@ -118,8 +117,8 @@ export default function HomePage() {
       </div>
 
       <div className="text-center mt-12">
-        <p className="text-purple-400 text-lg">
-          Choose your tool to get started
+        <p className="text-[#9ca3af] text-lg tracking-tight">
+          {t("home.chooseTool")}
         </p>
       </div>
     </AppLayout>
