@@ -188,6 +188,58 @@
       "Ensure your mix is finished before mastering. Heavy clipping or noise is hard to fix with mastering alone. Try different presets to find the right fit, and consider exporting both streaming and loud versions. For complex projects, consider working with a professional mastering engineer."
     ]
   },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: March 2026",
+    "section1": {
+      "title": "Overview",
+      "content": "MUSE CORE ('we', 'our', or 'the service') provides music utilities including metronome, tuner, official audio generation, and mastering. This Privacy Policy explains how we handle information when you use our service. We do not require user registration, and we do not collect personal information."
+    },
+    "section2": {
+      "title": "Information We Do Not Collect",
+      "content": "We do not collect personal information such as names, email addresses, phone numbers, or account credentials. There is no sign-up or login process. All processing—including metronome, tuner, audio/video encoding, and mastering—occurs locally in your browser. Your audio files, images, and any other data you use with our tools never leave your device and are not transmitted to our servers or any third party."
+    },
+    "section3": {
+      "title": "Browser and Technical Data",
+      "content": "When you visit our website, your browser may automatically send standard technical information (e.g., IP address, browser type, device type) to enable the site to load and function. We do not use this information to identify or track you personally. We do not use cookies for tracking or advertising purposes. Any local storage (e.g., preferences) remains on your device only."
+    },
+    "section4": {
+      "title": "Third-Party Services",
+      "content": "Our service may use third-party services (e.g., hosting, analytics) to operate the website. These services may collect limited technical data as described in their own privacy policies. We do not share your personal information with third parties because we do not collect it."
+    },
+    "section5": {
+      "title": "Changes and Contact",
+      "content": "We may update this Privacy Policy from time to time. Continued use of the service after changes constitutes acceptance. If you have questions about this policy, please contact us through the contact page."
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: March 2025",
+    "section1": {
+      "title": "Acceptance of Terms",
+      "content": "By accessing or using MUSE CORE ('the service'), you agree to these Terms of Service. If you do not agree, please do not use the service."
+    },
+    "section2": {
+      "title": "Free Use and Commercial Use",
+      "content": "MUSE CORE is provided free of charge. You may use the service for personal, educational, and commercial purposes without payment or attribution. This includes using the metronome, tuner, official audio generator, and mastering tools for your own projects, client work, or commercial releases."
+    },
+    "section3": {
+      "title": "Your Content and Responsibility",
+      "content": "You are solely responsible for the content you upload and process using our tools. You must have the necessary rights to any audio, images, or other materials you use. We do not claim ownership of your content. All processing happens in your browser; we do not store or access your files."
+    },
+    "section4": {
+      "title": "Disclaimer of Warranties",
+      "content": "The service is provided 'as is' and 'as available' without warranties of any kind, express or implied. We do not guarantee that the service will be uninterrupted, error-free, or suitable for any particular purpose. Use of the service is at your own risk."
+    },
+    "section5": {
+      "title": "Limitation of Liability",
+      "content": "To the fullest extent permitted by law, MUSE CORE and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service. We are not responsible for any loss of data, revenue, or business opportunities."
+    },
+    "section6": {
+      "title": "Changes and Termination",
+      "content": "We may modify or discontinue the service at any time. We may also update these Terms of Service. Continued use after changes constitutes acceptance. If you do not agree to updated terms, please stop using the service."
+    }
+  },
   "contentPlaceholder": {
     "defaultTitle": "Guide & Tips",
     "defaultText1": "This area can hold usage tips or guide content. Sufficient text helps UX and SEO.",
