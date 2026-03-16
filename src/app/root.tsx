@@ -27,6 +27,7 @@ import { serializeError } from 'serialize-error';
 import { Toaster } from 'sonner';
 // @ts-ignore
 import { LoadFonts } from 'virtual:load-fonts.jsx';
+import { GoogleAnalytics } from '../__create/GoogleAnalytics';
 import { HotReloadIndicator } from '../__create/HotReload';
 import { useSandboxStore } from '../__create/hmr-sandbox-store';
 import type { Route } from './+types/root';
@@ -385,9 +386,12 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
         <ClientOnly
           loader={() => (
-            <AdSenseScriptLoader
-              enabled={!(pathname === '/' || pathname?.startsWith('/metronome') || pathname?.startsWith('/tuner') || pathname?.startsWith('/audio-analyzer'))}
-            />
+            <>
+              <GoogleAnalytics />
+              <AdSenseScriptLoader
+                enabled={!(pathname === '/' || pathname?.startsWith('/metronome') || pathname?.startsWith('/tuner') || pathname?.startsWith('/audio-analyzer'))}
+              />
+            </>
           )}
         />
         <HotReloadIndicator />
