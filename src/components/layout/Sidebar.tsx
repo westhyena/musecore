@@ -51,9 +51,21 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }: SidebarP
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-56 flex-shrink-0 flex-col border-r border-white/10 bg-[#0a0a0c]/95 backdrop-blur-xl">
         <div className="sticky top-0 p-4">
-          <Link to="/" className="block mb-2">
-            <span className="text-lg font-semibold tracking-tight text-white">
-              MUSE CORE
+          <Link to="/" className="block mb-4" onClick={onClose}>
+            <span
+              className="text-xl font-black uppercase tracking-wider text-white block"
+              style={{
+                textShadow: `
+                  0 0 8px rgba(255, 255, 255, 0.9),
+                  0 0 16px rgba(255, 150, 255, 0.6),
+                  0 0 32px rgba(255, 100, 255, 0.4)
+                `,
+              }}
+            >
+              MUSECORE
+            </span>
+            <span className="text-xs text-white/80 font-normal mt-1 block">
+              {t("home.tagline")}
             </span>
           </Link>
           <NavContent />
@@ -64,13 +76,26 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }: SidebarP
       {isOpen && (
         <>
           <div
-            className="md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="md:hidden fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
             onClick={onClose}
             aria-hidden="true"
           />
-          <aside className="md:hidden fixed left-0 top-0 z-50 h-full w-64 flex-col border-r border-white/10 bg-[#0a0a0c] shadow-2xl">
+          <aside className="md:hidden fixed left-0 top-0 z-[60] h-full w-64 flex-col border-r border-white/10 bg-[#0a0a0c] shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 p-4">
-              <span className="text-lg font-semibold text-white">MUSE CORE</span>
+              <Link to="/" className="block" onClick={onClose}>
+                <span
+                  className="text-xl font-black uppercase tracking-wider text-white block"
+                  style={{
+                    textShadow: `
+                      0 0 8px rgba(255, 255, 255, 0.9),
+                      0 0 16px rgba(255, 150, 255, 0.6),
+                      0 0 32px rgba(255, 100, 255, 0.4)
+                    `,
+                  }}
+                >
+                  MUSECORE
+                </span>
+              </Link>
               <button
                 onClick={onClose}
                 className="rounded-lg p-2 text-[#9ca3af] hover:bg-white/10 hover:text-white"

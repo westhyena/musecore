@@ -6,13 +6,23 @@ export default function HomePage() {
   const { t } = useI18n();
 
   return (
-    <AppLayout title="MUSE CORE" containerMaxWidthClassName="max-w-4xl">
-      {/* Hero: MUSE CORE 소개 + 프라이버시 강조 */}
+    <AppLayout title="MUSECORE" containerMaxWidthClassName="max-w-4xl">
+      {/* Hero: MUSECORE 소개 + 프라이버시 강조 */}
       <div className="text-center mb-12">
-        <h1 className="text-5xl font-light mb-4 text-white tracking-tight">
-          {t("home.title")}
+        <h1
+          className="text-5xl md:text-7xl font-black uppercase tracking-wider text-white mb-4"
+          style={{
+            textShadow: `
+              0 0 10px rgba(255, 255, 255, 0.9),
+              0 0 20px rgba(255, 150, 255, 0.6),
+              0 0 40px rgba(255, 100, 255, 0.4),
+              0 0 80px rgba(255, 50, 255, 0.2)
+            `,
+          }}
+        >
+          MUSECORE
         </h1>
-        <p className="text-xl text-[#007AFF] font-medium mb-6 tracking-tight">
+        <p className="text-base md:text-lg text-white/90 font-normal mb-6 tracking-wide">
           {t("home.tagline")}
         </p>
         <p className="text-lg text-[#9ca3af] mb-8 max-w-2xl mx-auto leading-relaxed">
