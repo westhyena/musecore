@@ -6,3 +6,7 @@
 /build/
 
 .env
+
+# 빌드 시 생성되는 파일
+/public/sitemap.xml
+/public/robots.txt
