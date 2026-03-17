@@ -3,25 +3,24 @@ import { resolve } from 'node:path';
 
 const root = resolve(process.cwd());
 
-// Load SITE_URL from .env
-function loadEnv() {
+// Load SITE_URL: process.env (Vercel 등 CI) 우선, 없으면 .env 파일
+function loadSiteUrl() {
+  if (process.env.SITE_URL) {
+    return process.env.SITE_URL.trim().replace(/^["']|["']$/g, '');
+  }
   try {
     const env = readFileSync(resolve(root, '.env'), 'utf-8');
-    let siteUrl = 'https://www.musecore.app';
     for (const line of env.split('\n')) {
       const match = line.match(/^SITE_URL=(.+)$/);
       if (match) {
-        siteUrl = match[1].trim().replace(/^["']|["']$/g, '');
-        break;
+        return match[1].trim().replace(/^["']|["']$/g, '');
       }
     }
-    return siteUrl;
-  } catch {
-    return 'https://www.musecore.app';
-  }
+  } catch {}
+  return 'https://musecore.app';
 }
 
-let siteUrl = loadEnv();
+let siteUrl = loadSiteUrl();
 if (!siteUrl.endsWith('/')) {
   siteUrl = siteUrl + '/';
 }
