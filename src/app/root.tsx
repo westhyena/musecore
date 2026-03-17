@@ -376,7 +376,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <Meta />
         <Links />
         <script type="module" src="/src/__create/dev-error-overlay.js"></script>
-        <link rel="icon" href="/src/__create/favicon.png" />
+        <link rel="icon" href="/favicon.png" />
         <LoadFonts />
         {/* AdSense 스크립트는 초기 렌더 이후에만 로드 (hydrate 불일치 방지) */}
       </head>
