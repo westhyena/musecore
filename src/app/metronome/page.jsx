@@ -10,6 +10,13 @@ import AppLayout from '@/components/layout/AppLayout';
 import ContentPlaceholder from '@/components/layout/ContentPlaceholder';
 import { useI18n } from '@/i18n/I18nContext';
 
+// Web Worker for scheduler: timers in Workers are NOT throttled in background tabs
+const createMetronomeWorker = () =>
+  new Worker(new URL("./metronome.worker.js", import.meta.url));
+
+const SCHEDULE_LOOKAHEAD_SEC = 0.25; // Schedule beats 250ms ahead
+const MIN_SCHEDULE_AHEAD_SEC = 0.02;  // Don't schedule if < 20ms away (avoid past)
+
 export default function MetronomePage() {
   const { t, tArray } = useI18n();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -21,8 +28,14 @@ export default function MetronomePage() {
   const [showCustomize, setShowCustomize] = useState(false);
   const [customNumerator, setCustomNumerator] = useState(4);
   const [customDenominator, setCustomDenominator] = useState(4);
-  const intervalRef = useRef(null);
+  const workerRef = useRef(null);
   const audioContextRef = useRef(null);
+  const schedulerStateRef = useRef({
+    startTime: 0,
+    intervalSec: 0,
+    beatsPerMeasure: 4,
+    lastScheduledBeatIndex: -1,
+  });
 
   const timeSignatures = {
     "4/4": { beats: 4, key: "commonTime" },
@@ -52,82 +65,121 @@ export default function MetronomePage() {
     audioContextRef.current = new (
       window.AudioContext || window.webkitAudioContext
     )();
+    workerRef.current = createMetronomeWorker();
     return () => {
+      workerRef.current?.postMessage({ action: "stop" });
+      workerRef.current?.terminate();
+      workerRef.current = null;
       if (audioContextRef.current) {
         audioContextRef.current.close();
       }
     };
   }, []);
 
-  const playClick = useCallback(
-    (isAccent = false) => {
-      if (!audioContextRef.current) return;
+  // Schedule a click at a precise time (Web Audio clock). Skips if time is in the past.
+  const scheduleClick = useCallback(
+    (scheduledTime, isAccent, vol) => {
+      const ctx = audioContextRef.current;
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      if (scheduledTime < now + MIN_SCHEDULE_AHEAD_SEC) return; // Avoid past / burst on resume
 
-      const oscillator = audioContextRef.current.createOscillator();
-      const gainNode = audioContextRef.current.createGain();
-
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
       oscillator.connect(gainNode);
-      gainNode.connect(audioContextRef.current.destination);
+      gainNode.connect(ctx.destination);
 
       const frequency = isAccent ? 1000 : 800;
-      oscillator.frequency.setValueAtTime(
-        frequency,
-        audioContextRef.current.currentTime,
-      );
-      gainNode.gain.setValueAtTime(volume, audioContextRef.current.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.01,
-        audioContextRef.current.currentTime + 0.1,
-      );
+      oscillator.frequency.setValueAtTime(frequency, scheduledTime);
+      gainNode.gain.setValueAtTime(vol, scheduledTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, scheduledTime + 0.1);
 
-      oscillator.start(audioContextRef.current.currentTime);
-      oscillator.stop(audioContextRef.current.currentTime + 0.1);
+      oscillator.start(scheduledTime);
+      oscillator.stop(scheduledTime + 0.1);
     },
-    [volume],
+    [],
   );
 
-  const playBeat = useCallback(() => {
-    setCurrentBeat((prevBeat) => {
-      const beatsPerMeasure = getCurrentTimeSignature().beats;
-      const currentBeatIndex = prevBeat;
-      const isAccent = currentBeatIndex === 0;
+  const runScheduler = useCallback(() => {
+    const ctx = audioContextRef.current;
+    const state = schedulerStateRef.current;
+    if (!ctx || ctx.state === "suspended") return; // Don't schedule when suspended (avoids burst on resume)
 
-      playClick(isAccent);
+    const now = ctx.currentTime;
+    const currentBeatIndex = Math.floor((now - state.startTime) / state.intervalSec);
+    // After tab resume, skip past beats we missed during suspension
+    if (state.lastScheduledBeatIndex < currentBeatIndex - 1) {
+      state.lastScheduledBeatIndex = currentBeatIndex - 1;
+    }
 
-      return (currentBeatIndex + 1) % beatsPerMeasure;
-    });
-  }, [timeSignature, customNumerator, showCustomize, playClick]);
+    const horizon = now + SCHEDULE_LOOKAHEAD_SEC;
+
+    while (
+      state.startTime + (state.lastScheduledBeatIndex + 1) * state.intervalSec <
+      horizon
+    ) {
+      const nextIndex = state.lastScheduledBeatIndex + 1;
+      const scheduledTime = state.startTime + nextIndex * state.intervalSec;
+      if (scheduledTime >= now + MIN_SCHEDULE_AHEAD_SEC) {
+        const isAccent = nextIndex % state.beatsPerMeasure === 0;
+        scheduleClick(scheduledTime, isAccent, volume);
+        state.lastScheduledBeatIndex = nextIndex;
+      } else {
+        state.lastScheduledBeatIndex = nextIndex;
+      }
+    }
+  }, [volume, scheduleClick]);
+
+  // Update currentBeat for UI from audio clock
+  const updateBeatFromClock = useCallback(() => {
+    const ctx = audioContextRef.current;
+    const state = schedulerStateRef.current;
+    if (!ctx || !isPlaying) return;
+
+    const elapsed = ctx.currentTime - state.startTime;
+    const beatIndex = Math.floor(elapsed / state.intervalSec);
+    const displayBeat = beatIndex % state.beatsPerMeasure;
+    setCurrentBeat(displayBeat);
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const id = setInterval(updateBeatFromClock, 50);
+    return () => clearInterval(id);
+  }, [isPlaying, updateBeatFromClock]);
 
   const startMetronome = useCallback(() => {
-    if (audioContextRef.current?.state === "suspended") {
-      audioContextRef.current.resume();
+    const ctx = audioContextRef.current;
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume();
     }
 
-    const interval = 60000 / bpm;
+    const intervalSec = 60 / bpm;
+    const beatsPerMeasure = getCurrentTimeSignature().beats;
+    const startTime = ctx.currentTime;
+
+    schedulerStateRef.current = {
+      startTime,
+      intervalSec,
+      beatsPerMeasure,
+      lastScheduledBeatIndex: -1,
+    };
 
     setCurrentBeat(0);
-    playClick(true);
+    scheduleClick(startTime, true, volume);
+    schedulerStateRef.current.lastScheduledBeatIndex = 0;
 
-    intervalRef.current = setInterval(() => {
-      setCurrentBeat((prevBeat) => {
-        const beatsPerMeasure = getCurrentTimeSignature().beats;
-        const nextBeat = (prevBeat + 1) % beatsPerMeasure;
-        const isAccent = nextBeat === 0;
-
-        playClick(isAccent);
-
-        return nextBeat;
-      });
-    }, interval);
+    workerRef.current?.postMessage({
+      action: "start",
+      tickMs: 60,
+    });
 
     setIsPlaying(true);
-  }, [bpm, timeSignature, customNumerator, showCustomize, playClick]);
+  }, [bpm, timeSignature, customNumerator, showCustomize, volume, scheduleClick]);
 
   const stopMetronome = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    workerRef.current?.postMessage({ action: "stop" });
     setIsPlaying(false);
     setCurrentBeat(0);
   }, []);
@@ -163,6 +215,30 @@ export default function MetronomePage() {
 
     return () => clearTimeout(timer);
   }, [tapTimes]);
+
+  // Worker tick → run scheduler (look-ahead scheduling)
+  useEffect(() => {
+    const worker = workerRef.current;
+    if (!worker) return;
+    const onMessage = () => {
+      if (isPlaying) runScheduler();
+    };
+    worker.onmessage = onMessage;
+    return () => {
+      worker.onmessage = null;
+    };
+  }, [isPlaying, runScheduler]);
+
+  // Visibility change: resume AudioContext when user returns to tab
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && audioContextRef.current?.state === "suspended") {
+        audioContextRef.current.resume();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
 
   useEffect(() => {
     if (isPlaying) {
