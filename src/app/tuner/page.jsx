@@ -5,12 +5,25 @@ import AppLayout from '@/components/layout/AppLayout';
 import ContentPlaceholder from '@/components/layout/ContentPlaceholder';
 import { useI18n } from '@/i18n/I18nContext';
 
+const REFERENCE_PITCH_PRESETS = [
+  { value: 415, labelKey: "tuner.refPitch.415" },
+  { value: 432, labelKey: "tuner.refPitch.432" },
+  { value: 435, labelKey: "tuner.refPitch.435" },
+  { value: 440, labelKey: "tuner.refPitch.440" },
+  { value: 442, labelKey: "tuner.refPitch.442" },
+  { value: 443, labelKey: "tuner.refPitch.443" },
+  { value: 444, labelKey: "tuner.refPitch.444" },
+];
+
 export default function TunerPage() {
   const { t, tArray } = useI18n();
   const [isListening, setIsListening] = useState(false);
   const [frequency, setFrequency] = useState(0);
   const [note, setNote] = useState("");
   const [cents, setCents] = useState(0);
+  const [referencePitch, setReferencePitch] = useState(440);
+  const [customPitch, setCustomPitch] = useState(440);
+  const [useCustomPitch, setUseCustomPitch] = useState(false);
   const mediaStreamRef = useRef(null);
   const analyserRef = useRef(null);
   const animationRef = useRef(null);
@@ -26,11 +39,13 @@ export default function TunerPage() {
     "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
   ];
 
-  const getNoteInfo = (freq) => {
-    const midi = Math.round(69 + 12 * Math.log2(freq / 440));
+  const effectiveRefPitch = useCustomPitch ? customPitch : referencePitch;
+
+  const getNoteInfo = (freq, refHz = effectiveRefPitch) => {
+    const midi = Math.round(69 + 12 * Math.log2(freq / refHz));
     const name = NOTE_NAMES[((midi % 12) + 12) % 12];
     const octave = Math.floor(midi / 12) - 1;
-    const targetFreq = 440 * Math.pow(2, (midi - 69) / 12);
+    const targetFreq = refHz * Math.pow(2, (midi - 69) / 12);
     return { name, octave, targetFreq, midi };
   };
 
@@ -121,7 +136,7 @@ export default function TunerPage() {
     }
 
     animationRef.current = requestAnimationFrame(analyzeAudio);
-  }, [drawWaveform]);
+  }, [drawWaveform, effectiveRefPitch]);
 
   const startTuner = async () => {
     try {
@@ -204,6 +219,48 @@ export default function TunerPage() {
       </div>
 
       <div className="daw-card p-6 relative overflow-hidden">
+        {/* Reference pitch selector */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+          <span className="text-sm text-[#9ca3af]">{t("tuner.referencePitch")}</span>
+          <div className="flex items-center gap-2">
+            <select
+              value={useCustomPitch ? "custom" : referencePitch}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "custom") {
+                  setUseCustomPitch(true);
+                  setCustomPitch(440);
+                } else {
+                  setUseCustomPitch(false);
+                  setReferencePitch(Number(v));
+                }
+              }}
+              className="bg-[#1f2937] border border-[#374151] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#10b981]/50"
+            >
+              {REFERENCE_PITCH_PRESETS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {t(p.labelKey)}
+                </option>
+              ))}
+              <option value="custom">{t("tuner.refPitch.custom")}</option>
+            </select>
+            {useCustomPitch && (
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={400}
+                  max={500}
+                  step={1}
+                  value={customPitch}
+                  onChange={(e) => setCustomPitch(Math.max(400, Math.min(500, Number(e.target.value) || 440)))}
+                  className="w-16 bg-[#1f2937] border border-[#374151] rounded-lg px-2 py-2 text-sm text-white text-center focus:outline-none focus:ring-2 focus:ring-[#10b981]/50"
+                />
+                <span className="text-sm text-[#9ca3af]">Hz</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Waveform background - lab equipment feel */}
         {isListening && (
           <div className="absolute inset-x-0 top-0 h-24 overflow-hidden pointer-events-none opacity-40">

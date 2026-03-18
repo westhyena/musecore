@@ -99,6 +99,17 @@
   },
   "tuner": {
     "title": "Tuner",
+    "referencePitch": "Reference pitch",
+    "refPitch": {
+      "415": "A415 (Baroque)",
+      "432": "A432 (Verdi)",
+      "435": "A435 (French historical)",
+      "440": "A440 (Standard)",
+      "442": "A442",
+      "443": "A443",
+      "444": "A444",
+      "custom": "Custom"
+    },
     "noSignal": "No signal detected",
     "inTune": "✓ In Tune",
     "close": "~ Close",
@@ -109,9 +120,9 @@
     "contentTitle": "Tuner Guide",
     "rightSlot": "Tuner",
     "guideItems": [
-      "A tuner is an essential tool for tuning your instrument to the correct pitch. Whether you play guitar, bass, violin, ukulele, mandolin, or wind instruments like flute and clarinet, a tuner helps you achieve accurate intonation. This online tuner analyzes sound in real time through your microphone and displays the pitch relative to standard A440. No app installation is required—use it directly in your browser at home, in the practice room, or at the venue.",
-      "Standard Pitch A440",
-      "A440 refers to the standard frequency of 440 Hz for the note A. It is the international reference (ISO 16) used by most orchestras and instrument makers. Some Baroque or classical ensembles use historical pitches like A415 or A432, but for general practice and performance, A440 is the norm. This tuner calculates pitches based on A440.",
+      "A tuner is an essential tool for tuning your instrument to the correct pitch. Whether you play guitar, bass, violin, ukulele, mandolin, or wind instruments like flute and clarinet, a tuner helps you achieve accurate intonation. This online tuner analyzes sound in real time through your microphone and displays the pitch relative to your chosen reference. No app installation is required—use it directly in your browser at home, in the practice room, or at the venue.",
+      "Reference Pitch Selection",
+      "Use the 'Reference pitch' dropdown at the top to select the A4 reference frequency. A440 (440 Hz) is the international standard (ISO 16) used by most orchestras and instrument makers. Baroque ensembles often use A415, Verdi or scientific tuning uses A432, and some orchestras use A442–444. Choose the reference pitch that matches your music style or ensemble. You can also enter a custom value between 400–500 Hz.",
       "Understanding Cents",
       "Cents are 1/100th of a semitone and indicate how far a note is from the correct pitch. A value near 0¢ means the note is in tune; +50¢ means a half step sharp, and -50¢ means a half step flat. The gauge needle moves from left (flat) to right (sharp), and when it points to the center, the note is correctly tuned. Within ±5¢ the display shows 'In Tune,' within ±15¢ it shows 'Close,' and beyond that 'Out of Tune.'",
       "How to Use",
