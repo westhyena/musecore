@@ -245,12 +245,9 @@ export default function TunerPage() {
                 stroke="rgba(255,255,255,0.2)"
                 strokeWidth="1"
               />
-              {/* Needle */}
+              {/* Needle - pivot at bottom center (140, 140), rotate around that point */}
               {note && (
-                <g
-                  transform={`translate(140, 140) rotate(${needleAngle})`}
-                  style={{ transformOrigin: "140px 140px" }}
-                >
+                <g transform={`translate(140, 140) rotate(${needleAngle} 0 0)`}>
                   <line
                     x1="0"
                     y1="0"
