@@ -4,6 +4,47 @@ import AppLayout from '@/components/layout/AppLayout';
 import ContentPlaceholder from '@/components/layout/ContentPlaceholder';
 import { useI18n } from '@/i18n/I18nContext';
 
+function FileDropZone({ onSelect, accept, multiple, label, icon: Icon, isHover, setIsHover, hasFiles, fileCount, onDrop, onDragOver }) {
+  return (
+    <label
+      onMouseEnter={() => setIsHover(true)}
+      onMouseLeave={() => setIsHover(false)}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      className={`daw-glow-border flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 cursor-pointer transition-all duration-300 ${
+        isHover
+          ? "border-[#007AFF]/60 bg-[#007AFF]/5"
+          : "border-white/20 bg-white/5 hover:bg-white/8"
+      }`}
+    >
+      <Icon className={`text-4xl transition-colors ${isHover ? "text-[#007AFF]" : "text-[#9ca3af]"}`} />
+      <span className="text-sm text-[#9ca3af]">{label}</span>
+      {hasFiles && (
+        <span className="text-xs text-[#39FF14]">
+          <FilesSelectedCount count={fileCount} />
+        </span>
+      )}
+      <input
+        type="file"
+        multiple={multiple}
+        accept={accept}
+        className="hidden"
+        onChange={(e) => {
+          const files = e.target.files;
+          if (!files?.length) return;
+          if (multiple) onSelect(Array.from(files));
+          else onSelect(files[0]);
+        }}
+      />
+    </label>
+  );
+}
+
+function FilesSelectedCount({ count }) {
+  const { t } = useI18n();
+  return t("common.filesSelected", { count });
+}
+
 export default function OfficialAudioPage() {
   const { t, tArray } = useI18n();
   const [audioFiles, setAudioFiles] = useState([]);
@@ -101,36 +142,42 @@ export default function OfficialAudioPage() {
     cancelRef.current = true;
   };
 
-  const DropZone = ({ onSelect, accept, multiple, label, icon: Icon, isHover, setIsHover, hasFiles, fileCount }) => (
-    <label
-      onMouseEnter={() => setIsHover(true)}
-      onMouseLeave={() => setIsHover(false)}
-      className={`daw-glow-border flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 cursor-pointer transition-all duration-300 ${
-        isHover
-          ? "border-[#007AFF]/60 bg-[#007AFF]/5"
-          : "border-white/20 bg-white/5 hover:bg-white/8"
-      }`}
-    >
-      <Icon className={`text-4xl transition-colors ${isHover ? "text-[#007AFF]" : "text-[#9ca3af]"}`} />
-      <span className="text-sm text-[#9ca3af]">{label}</span>
-      {hasFiles && (
-        <span className="text-xs text-[#39FF14]">{t("common.filesSelected", { count: fileCount })}</span>
-      )}
-      <input
-        type="file"
-        multiple={multiple}
-        accept={accept}
-        className="hidden"
-        onChange={(e) => {
-          if (multiple) {
-            onSelect(Array.from(e.target.files || []));
-          } else {
-            onSelect(e.target.files?.[0] ?? null);
-          }
-        }}
-      />
-    </label>
-  );
+  const handleDrop = (onSelect, multiple, accept) => (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    let files = [];
+    if (e.dataTransfer?.items) {
+      for (const item of e.dataTransfer.items) {
+        if (item.kind === "file") {
+          const file = item.getAsFile();
+          if (file) files.push(file);
+        }
+      }
+    } else if (e.dataTransfer?.files) {
+      files = Array.from(e.dataTransfer.files);
+    }
+    if (files.length === 0) return;
+    const filtered = accept
+      ? files.filter((f) => {
+          const type = f.type || "";
+          const name = (f.name || "").toLowerCase();
+          if (accept.includes("audio/*")) return type.startsWith("audio/") || /\.(mp3|wav|m4a|aac|ogg|flac)$/.test(name);
+          if (accept.includes("image/*")) return type.startsWith("image/") || /\.(png|jpg|jpeg|gif|webp)$/.test(name);
+          return true;
+        })
+      : files;
+    if (filtered.length === 0) return;
+    if (multiple) {
+      onSelect(filtered);
+    } else {
+      onSelect(filtered[0]);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   return (
     <AppLayout title="MUSE CORE" rightSlot={<span>{t("officialAudio.rightSlot")}</span>}>
@@ -144,7 +191,7 @@ export default function OfficialAudioPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm text-[#e5e5e5] mb-2">{t("officialAudio.audioFiles")}</label>
-              <DropZone
+              <FileDropZone
                 onSelect={onSelectAudios}
                 accept="audio/*"
                 multiple
@@ -154,12 +201,14 @@ export default function OfficialAudioPage() {
                 setIsHover={setIsAudioHover}
                 hasFiles={!!audioFiles.length}
                 fileCount={audioFiles.length}
+                onDrop={handleDrop(onSelectAudios, true, "audio/*")}
+                onDragOver={handleDragOver}
               />
             </div>
 
             <div>
               <label className="block text-sm text-[#e5e5e5] mb-2">{t("officialAudio.albumArt")}</label>
-              <DropZone
+              <FileDropZone
                 onSelect={(file) => setImageFile(file)}
                 accept="image/*"
                 label={t("officialAudio.imageLabel")}
@@ -168,6 +217,8 @@ export default function OfficialAudioPage() {
                 setIsHover={setIsImageHover}
                 hasFiles={!!imageFile}
                 fileCount={imageFile ? 1 : 0}
+                onDrop={handleDrop((f) => setImageFile(f), false, "image/*")}
+                onDragOver={handleDragOver}
               />
               {imageFile && (
                 <div className="mt-3 text-sm text-[#9ca3af] truncate">{imageFile.name}</div>
